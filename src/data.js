@@ -145,10 +145,10 @@ export const articles = [
 export const typeLabel = { hyb: 'Hybrid', sat: 'Sativa', ind: 'Indica' };
 
 export const trust = [
-  { icon: 'bolt', title: 'Live menus', text: 'Checked every morning' },
-  { icon: 'tag', title: 'Verified deals', text: 'Pulled from real menus' },
-  { icon: 'leaf', title: 'Strain data', text: 'Type, lineage and potency' },
-  { icon: 'pin', title: 'Pickup & delivery', text: 'Filter by how you shop' },
+  { icon: 'bolt', title: 'Live menus', text: 'Checked every morning', value: 4312, suffix: '', live: true, to: '/dispensaries' },
+  { icon: 'tag', title: 'Verified deals', text: 'Pulled from real menus', value: 1286, suffix: '', live: true, to: '/deals' },
+  { icon: 'leaf', title: 'Strain data', text: 'Type, lineage and potency', value: 2640, suffix: '+', live: false, to: '/strains' },
+  { icon: 'pin', title: 'Pickup & delivery', text: 'Filter by how you shop', value: 38, suffix: '', label: 'open now', live: true, to: '/dispensaries?type=delivery' },
 ];
 
 export const featureTiles = [

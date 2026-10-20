@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { trust, liveMenus, mapPoints, site, deals } from '../data.js';
 import { Pin, Clock, Map, Star, Book, Tag, Leaf, Store, ChevronRight, Check } from '../icons.jsx';
 import { LiveDot, TypeChip } from './ui.jsx';
@@ -15,19 +16,48 @@ const icons = {
   bolt: <Store className="ic18" />,
 };
 
+// Counts from 0 to `to` over 1.2s the first time the element scrolls into view.
+function CountUp({ to, suffix = '' }) {
+  const ref = useRef(null);
+  const [n, setN] = useState(0);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return undefined;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { setN(to); return undefined; }
+    let raf = 0;
+    const io = new IntersectionObserver((es) => {
+      if (!es.some((e) => e.isIntersecting)) return;
+      io.disconnect();
+      const t0 = performance.now();
+      const tick = (t) => {
+        const p = Math.min(1, (t - t0) / 1200);
+        const eased = 1 - Math.pow(1 - p, 3);
+        setN(Math.round(to * eased));
+        if (p < 1) raf = requestAnimationFrame(tick);
+      };
+      raf = requestAnimationFrame(tick);
+    }, { threshold: 0.4 });
+    io.observe(el);
+    return () => { io.disconnect(); cancelAnimationFrame(raf); };
+  }, [to]);
+  return <span ref={ref} className="trust-num">{n.toLocaleString()}{suffix}</span>;
+}
+
 export function TrustStrip() {
   return (
     <section className="trust">
       <div className="wrap">
         <div className="trust-card" data-reveal>
           {trust.map((t) => (
-            <div key={t.title} className="trust-item">
+            <Link key={t.title} to={t.to} className="trust-item">
               <span className="trust-icon">{icons[t.icon]}</span>
               <span className="trust-copy">
-                <span className="trust-title">{t.title}</span>
+                <span className="trust-stat"><CountUp to={t.value} suffix={t.suffix} />{t.live && <i className="trust-dot" />}</span>
+                <span className="trust-title">{t.label ? `${t.title} · ${t.label}` : t.title}</span>
                 <span className="muted trust-text">{t.text}</span>
               </span>
-            </div>
+              <ChevronRight className="ic14 trust-go" />
+            </Link>
           ))}
         </div>
       </div>
