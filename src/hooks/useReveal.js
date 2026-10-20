@@ -8,8 +8,10 @@ export function useReveal(deps = []) {
     const pending = new Set(document.querySelectorAll('[data-reveal]'));
     if (!pending.size) return undefined;
 
+    const revealed = new WeakSet();
     const reveal = (el) => {
       el.classList.add('in');
+      revealed.add(el);
       pending.delete(el);
     };
 
@@ -34,13 +36,21 @@ export function useReveal(deps = []) {
 
     // Elements mounted later (tab switches, hot reloads) join the same observer.
     const mo = new MutationObserver((muts) => {
-      muts.forEach((m) => m.addedNodes.forEach((n) => {
-        if (n.nodeType !== 1) return;
-        const els = n.matches('[data-reveal]') ? [n] : [...n.querySelectorAll('[data-reveal]')];
-        els.forEach((el) => { if (!el.classList.contains('in') && !pending.has(el)) { pending.add(el); io.observe(el); } });
-      }));
+      muts.forEach((m) => {
+        // A React re-render that rewrites className drops the imperatively added `in`; put it back.
+        if (m.type === 'attributes') {
+          const el = m.target;
+          if (revealed.has(el) && !el.classList.contains('in')) el.classList.add('in');
+          return;
+        }
+        m.addedNodes.forEach((n) => {
+          if (n.nodeType !== 1) return;
+          const els = n.matches('[data-reveal]') ? [n] : [...n.querySelectorAll('[data-reveal]')];
+          els.forEach((el) => { if (!el.classList.contains('in') && !pending.has(el)) { pending.add(el); io.observe(el); } });
+        });
+      });
     });
-    mo.observe(document.body, { childList: true, subtree: true });
+    mo.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
 
     // Catch elements the viewport jumped over without ever intersecting them.
     let raf = 0;

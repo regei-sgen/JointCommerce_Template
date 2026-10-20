@@ -1273,10 +1273,11 @@ img, svg { display: inline-block; }
 
 /* dispensaries: list + sticky map */
 .dsplit { display: grid; grid-template-columns: minmax(0, 1fr) 420px; gap: 24px; align-items: start; }
+.dsplit-map { align-self: stretch; }
 .dgrid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
-.imcard.hot { transform: translateY(-6px); box-shadow: 0 2px 4px rgba(11, 43, 38, 0.08), 0 16px 28px -8px rgba(11, 43, 38, 0.22), 0 48px 72px -24px rgba(11, 43, 38, 0.45), 0 0 0 4px rgba(20, 179, 138, 0.18); }
-.imcard.hot .imcard-body { transform: translateY(0); }
-.imcard.hot .imcard-cta { opacity: 1; }
+.imcard.hot, .imcard[data-hot] { transform: translateY(-6px); box-shadow: 0 2px 4px rgba(11, 43, 38, 0.08), 0 16px 28px -8px rgba(11, 43, 38, 0.22), 0 48px 72px -24px rgba(11, 43, 38, 0.45), 0 0 0 4px rgba(20, 179, 138, 0.18); }
+.imcard.hot .imcard-body, .imcard[data-hot] .imcard-body { transform: translateY(0); }
+.imcard.hot .imcard-cta, .imcard[data-hot] .imcard-cta { opacity: 1; }
 .imcard-cta { align-items: center; }
 .imcard-count { margin-left: auto; font-size: 12px; font-weight: 600; color: rgba(255, 255, 255, 0.75); }
 .imcard-row .chip .ic14 { margin: 0 2px 0 0; }

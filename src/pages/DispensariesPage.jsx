@@ -76,7 +76,7 @@ export default function DispensariesPage() {
             <div className="dgrid2">
               {list.map((d, i) => (
                 <Link
-                  key={d.slug} to={`/dispensaries/${d.slug}`} className={`imcard${hover === d.slug ? ' hot' : ''}`} data-reveal style={{ '--i': i % 6 }}
+                  key={d.slug} to={`/dispensaries/${d.slug}`} className="imcard" data-hot={hover === d.slug ? '' : undefined} data-reveal style={{ '--i': i % 6 }}
                   onMouseEnter={() => setHover(d.slug)} onMouseLeave={() => setHover(null)}
                 >
                   <Photo src={pics.dispensaries[i % pics.dispensaries.length]} className="imcard-photo" />
