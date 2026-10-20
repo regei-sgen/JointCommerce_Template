@@ -1,8 +1,9 @@
+import { Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from '../icons.jsx';
 import { typeLabel } from '../data.js';
 import { stateShapes } from '../stateShapes.js';
 
-export function SectionHeader({ icon, eyebrow, title, sub, link, arrows = true, action, size }) {
+export function SectionHeader({ icon, eyebrow, title, sub, link, to, arrows = true, action, size }) {
   return (
     <div className="sh" data-reveal>
       <div>
@@ -14,12 +15,11 @@ export function SectionHeader({ icon, eyebrow, title, sub, link, arrows = true, 
         {sub && <p className="sub">{sub}</p>}
       </div>
       <div className="sh-actions">
-        {link && (
-          <a href="#" className="link">
-            {link}
-            <ChevronRight className="ic14 ic-after" />
-          </a>
-        )}
+        {link && (to ? (
+          <Link to={to} className="link">{link}<ChevronRight className="ic14 ic-after" /></Link>
+        ) : (
+          <a href="#" className="link">{link}<ChevronRight className="ic14 ic-after" /></a>
+        ))}
         {action}
         {arrows && (
           <div className="arrows">

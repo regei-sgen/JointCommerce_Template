@@ -13,7 +13,7 @@ export function TopDispensaries() {
   return (
     <section className="sec">
       <div className="wrap">
-        <SectionHeader icon={<Pin />} eyebrow="Near you" title="Top dispensaries" sub="Dispensaries in your area, menus checked today." link="View all" arrows={false} />
+        <SectionHeader icon={<Pin />} eyebrow="Near you" title="Top dispensaries" sub="Dispensaries in your area, menus checked today." link="View all" to="/dispensaries" arrows={false} />
         <Rail label="dispensaries" auto={3200}>
           {dispensaries.map((d, i) => (
             <Link key={d.slug} to={`/dispensaries/${d.slug}`} className="imcard" data-reveal style={{ '--i': i }}>
@@ -47,7 +47,7 @@ export function FeaturedBrands() {
   return (
     <section className="sec">
       <div className="wrap">
-        <SectionHeader icon={<Star />} eyebrow="Featured" title="Featured brands" sub="Shop products from top cannabis brands." link="View all brands" arrows={false} />
+        <SectionHeader icon={<Star />} eyebrow="Featured" title="Featured brands" sub="Shop products from top cannabis brands." link="View all brands" to="/brands" arrows={false} />
         <div className="tiles">
           {featureTiles.map((t, i) => (
             <a key={t.title} href="#" className="glass tile" data-reveal style={{ '--i': i }}>
@@ -87,7 +87,7 @@ export function PopularStrains() {
   return (
     <section className="sec sec-last">
       <div className="wrap">
-        <SectionHeader icon={<Leaf className="ic14" />} eyebrow="Strains" title="Popular strains" sub="Strains in our database, with type, potency and where they're on the menu." link="Browse all strains" arrows={false} />
+        <SectionHeader icon={<Leaf className="ic14" />} eyebrow="Strains" title="Popular strains" sub="Strains in our database, with type, potency and where they're on the menu." link="Browse all strains" to="/strains" arrows={false} />
         <Rail label="strains">
           {strains.map((s, i) => (
             <a key={s.name} href="#" className={`poster poster-${s.type}`} data-reveal style={{ '--i': i }}>
@@ -129,7 +129,7 @@ export function StatesSection() {
   return (
     <section className="sec">
       <div className="wrap">
-        <SectionHeader icon={<Flag />} eyebrow="By state" title="Dispensaries in" sub="Pick a state to see every menu we check there." link="Browse all states" arrows={false} />
+        <SectionHeader icon={<Flag />} eyebrow="By state" title="Dispensaries in" sub="Pick a state to see every menu we check there." link="Browse all states" to="/dispensaries/state" arrows={false} />
         <div className="usmap-grid">
           <div className="glass usmap" data-reveal ref={host}>
             {near ? (
@@ -181,7 +181,7 @@ export function MapSection() {
           title="Explore the map"
           sub="Browse dispensaries near you."
           arrows={false}
-          action={<a href="#" className="btn ink"><Map />Open the map</a>}
+          action={<Link to="/dispensaries" className="btn ink"><Map />Open the map</Link>}
         />
         <div className="glass map" data-reveal>
           <LeafletMap className="map-live" center={[42.4, -71.35]} zoom={9} points={mapPoints} />
@@ -202,7 +202,7 @@ export function Education() {
   return (
     <section className="sec">
       <div className="wrap">
-        <SectionHeader icon={<Book />} eyebrow="Learn" title="Cannabis education" sub="Tips, strain guides and industry news." link="Read all articles" arrows={false} />
+        <SectionHeader icon={<Book />} eyebrow="Learn" title="Cannabis education" sub="Tips, strain guides and industry news." link="Read all articles" to="/blog" arrows={false} />
         <div className="edu">
           <a href="#" className="poster edu-feature" data-reveal>
             <Photo src={pics.featuredArticle} className="poster-photo" />

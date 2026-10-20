@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { liveMenus, deals, topBrands, topStrains, newOnMenus, site } from '../data.js';
 import { useParallax, useReducedMotion } from '../hooks/useScroll.js';
 import { Map, Tag, Store, Leaf, Sparkle, ChevronRight, Clock, Check } from '../icons.jsx';
@@ -67,7 +68,7 @@ export default function DarkBand() {
             <p className="sub">Dispensaries whose menus we checked today, with products in stock. Set your location to see the ones near you.</p>
           </div>
           <div className="sh-actions">
-            <a href="#" className="btn"><Map />Open the map</a>
+            <Link to="/dispensaries" className="btn"><Map />Open the map</Link>
           </div>
         </div>
         <Rail label="live menus">
@@ -96,7 +97,7 @@ export default function DarkBand() {
             <h2 className="h2 h2-lg">Up to 50% off on live menus near you.</h2>
             <p className="sub">Flower, vapes, pre-rolls and edibles on sale right now, pulled from dispensary menus this morning.</p>
             <div className="promo-row">
-              <a href="#" className="btn promo-btn">See all deals<ChevronRight className="ic14 ic-after" /></a>
+              <Link to="/deals" className="btn promo-btn">See all deals<ChevronRight className="ic14 ic-after" /></Link>
               <span className="promo-note"><Clock className="ic14" />Ends tonight · {site.dealsLive.toLocaleString()} deals live</span>
             </div>
           </div>
@@ -127,7 +128,7 @@ export default function DarkBand() {
         <div className="band-gap" />
         <div className="band-split boards">
           <Board
-            title="Brands on the most menus" eyebrow="Brands" icon={<Store />} link="View all" rows={topBrands} max={brandMax}
+            title="Brands on the most menus" eyebrow="Brands" icon={<Store />} link="View all" to="/brands" rows={topBrands} max={brandMax}
             render={(b, i) => (
               <span className="board-main">
                 <span className="board-logo"><img src={pics.topBrands[i]} alt="" loading="lazy" /><span className={b.spaced ? 'spaced' : ''}>{b.label}</span></span>
@@ -136,7 +137,7 @@ export default function DarkBand() {
             )}
           />
           <Board
-            title="Strains on the most menus" eyebrow="Strains" icon={<Leaf className="ic14" />} link="Browse" rows={topStrains} max={strainMax}
+            title="Strains on the most menus" eyebrow="Strains" icon={<Leaf className="ic14" />} link="Browse" to="/strains" rows={topStrains} max={strainMax}
             render={(s, i) => (
               <span className="board-main">
                 <span className="board-logo"><img src={pics.topStrains[i]} alt="" loading="lazy" /></span>
@@ -147,7 +148,7 @@ export default function DarkBand() {
         </div>
 
         <div className="band-gap" />
-        <SectionHeader icon={<Sparkle />} eyebrow="Fresh" title="New on menus" sub="Strains first listed on dispensary menus since October 4." link="Browse all" arrows={false} />
+        <SectionHeader icon={<Sparkle />} eyebrow="Fresh" title="New on menus" sub="Strains first listed on dispensary menus since October 4." link="Browse all" to="/strains?new=1" arrows={false} />
         <Rail label="new strains">
           {newOnMenus.map((s, i) => (
             <a key={s.name} href="#" className={`poster poster-${s.type}`} data-reveal style={{ '--i': i }}>

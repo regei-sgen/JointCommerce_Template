@@ -10,7 +10,7 @@ export const navMenu = [
       { icon: 'trophy', title: 'Best dispensaries', text: 'Top-rated stores in your area', to: '/dispensaries/best-in' },
     ],
   },
-  { label: 'Brands', to: '#' },
+  { label: 'Brands', to: '/brands' },
   {
     label: 'Strains',
     items: [
@@ -19,9 +19,9 @@ export const navMenu = [
       { icon: 'scale', title: 'Compare strains', text: 'See strains side by side', to: '/strains/compare' },
     ],
   },
-  { label: 'Deals', to: '#' },
+  { label: 'Deals', to: '/deals' },
   { label: 'Forum', to: '#' },
-  { label: 'Blog', to: '#' },
+  { label: 'Blog', to: '/blog' },
   {
     label: 'Resources',
     items: [

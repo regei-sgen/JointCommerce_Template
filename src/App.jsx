@@ -6,6 +6,12 @@ import { TopDispensaries, FeaturedBrands, PopularStrains, StatesSection, MapSect
 import { Advertise, Footer } from './components/Footer.jsx';
 import { TrustStrip, WhyRow, NewsletterStrip } from './components/Strips.jsx';
 const DispensaryPage = lazy(() => import('./pages/DispensaryPage.jsx'));
+const DispensariesPage = lazy(() => import('./pages/DispensariesPage.jsx'));
+const BrandsPage = lazy(() => import('./pages/BrandsPage.jsx'));
+const StrainsPage = lazy(() => import('./pages/StrainsPage.jsx'));
+const DealsPage = lazy(() => import('./pages/DealsPage.jsx'));
+const StatesPage = lazy(() => import('./pages/StatesPage.jsx'));
+const ArticlesPage = lazy(() => import('./pages/ArticlesPage.jsx'));
 import { useReveal } from './hooks/useReveal.js';
 
 function Home() {
@@ -56,7 +62,15 @@ export default function App() {
       <Suspense fallback={null}>
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/dispensaries" element={<DispensariesPage />} />
+          <Route path="/dispensaries/state" element={<StatesPage />} />
+          <Route path="/dispensaries/best-in" element={<DispensariesPage />} />
           <Route path="/dispensaries/:slug" element={<DispensaryPage />} />
+          <Route path="/brands" element={<BrandsPage />} />
+          <Route path="/strains" element={<StrainsPage />} />
+          <Route path="/strains/*" element={<StrainsPage />} />
+          <Route path="/deals" element={<DealsPage />} />
+          <Route path="/blog" element={<ArticlesPage />} />
           <Route path="*" element={<Home />} />
         </Routes>
       </Suspense>

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
 import { navMenu } from '../data.js';
 import {
   Pin, User, Menu, Close, ChevronDown, Store, Truck, Map, Trophy, Grid, Sparkle, Scale, Mail, FileText,
@@ -71,7 +71,7 @@ export default function Navbar() {
               </div>
             </div>
           ) : (
-            <a key={g.label} href={g.to || '#'} className="nav-item">{g.label}</a>
+            (g.to && g.to !== '#') ? <NavLink key={g.label} to={g.to} className="nav-item" onClick={() => setOpen(false)}>{g.label}</NavLink> : <a key={g.label} href="#" className="nav-item">{g.label}</a>
           ))}
           <div className="nav-mobile-actions">
             <button type="button" className="btn ghost sm" onClick={() => show('location')}><Pin />Set location</button>
