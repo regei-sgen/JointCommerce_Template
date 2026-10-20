@@ -17,7 +17,7 @@ const icons = {
 };
 
 // Counts from 0 to `to` over 1.2s the first time the element scrolls into view.
-function CountUp({ to, suffix = '' }) {
+export function CountUp({ to, suffix = '' }) {
   const ref = useRef(null);
   const [n, setN] = useState(0);
   useEffect(() => {

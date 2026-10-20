@@ -17,6 +17,10 @@ npm run preview  # serve the build
 
 `npm run deploy` builds with `GH_PAGES=1` (sets the `/JointCommerce_Template/` base path), copies `index.html` to `404.html` so client-side routes resolve on direct load, and force-pushes `dist/` to the `gh-pages` branch, which GitHub Pages serves.
 
+## Concept pages
+
+New layouts are built under `/concept/*` on `concept/<name>` branches without touching the routes above. See `CONCEPTS.md`.
+
 ## Structure
 
 - `src/App.jsx` – routes (`/`, `/dispensaries/:slug`) and page composition

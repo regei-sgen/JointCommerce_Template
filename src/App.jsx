@@ -12,6 +12,10 @@ const StrainsPage = lazy(() => import('./pages/StrainsPage.jsx'));
 const DealsPage = lazy(() => import('./pages/DealsPage.jsx'));
 const StatesPage = lazy(() => import('./pages/StatesPage.jsx'));
 const ArticlesPage = lazy(() => import('./pages/ArticlesPage.jsx'));
+// Concept pages (see CONCEPTS.md): a separate shell under /concept, left untouched by the routes above.
+const ConceptShell = lazy(() => import('./concept/Shell.jsx'));
+const ConceptHome = lazy(() => import('./concept/HomePage.jsx'));
+const ConceptCategory = lazy(() => import('./concept/CategoryPage.jsx'));
 import { useReveal } from './hooks/useReveal.js';
 
 function Home() {
@@ -71,6 +75,10 @@ export default function App() {
           <Route path="/strains/*" element={<StrainsPage />} />
           <Route path="/deals" element={<DealsPage />} />
           <Route path="/blog" element={<ArticlesPage />} />
+          <Route path="/concept" element={<ConceptShell />}>
+            <Route index element={<ConceptHome />} />
+            <Route path=":cat" element={<ConceptCategory />} />
+          </Route>
           <Route path="*" element={<Home />} />
         </Routes>
       </Suspense>

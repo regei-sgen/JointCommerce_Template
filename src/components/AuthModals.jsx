@@ -9,7 +9,7 @@ const RADII = ['5 mi', '10 mi', '25 mi', '50 mi'];
 
 const stop = (e) => e.preventDefault();
 
-export function LocationModal({ open, onClose }) {
+export function LocationModal({ open, onClose, onSet }) {
   const [q, setQ] = useState('');
   const [radius, setRadius] = useState('10 mi');
   return (
@@ -34,7 +34,7 @@ export function LocationModal({ open, onClose }) {
             <button key={r} type="button" role="radio" aria-checked={radius === r} className={radius === r ? 'on' : ''} onClick={() => setRadius(r)}>{r}</button>
           ))}
         </div>
-        <button type="submit" className="btn modal-submit" onClick={onClose}><Pin />Set location<ChevronRight className="ic14 ic-after" /></button>
+        <button type="submit" className="btn modal-submit" onClick={() => { if (q.trim() && onSet) onSet(q.trim()); onClose(); }}><Pin />Set location<ChevronRight className="ic14 ic-after" /></button>
       </form>
     </Modal>
   );
