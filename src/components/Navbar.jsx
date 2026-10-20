@@ -20,6 +20,20 @@ export default function Navbar() {
   const hide = () => setModal(null);
   const root = useRef(null);
   const closeTimer = useRef(0);
+  // Floats (fixed, compact, solid) once the page is scrolled past the header area; hysteresis avoids flicker.
+  const [floating, setFloating] = useState(false);
+  useEffect(() => {
+    let raf = 0;
+    const read = () => { raf = 0; const y = window.scrollY; setFloating((f) => (f ? y > 60 : y > 140)); };
+    const on = () => { if (!raf) raf = requestAnimationFrame(read); };
+    window.addEventListener('scroll', on, { passive: true });
+    read();
+    return () => { window.removeEventListener('scroll', on); if (raf) cancelAnimationFrame(raf); };
+  }, []);
+  useEffect(() => {
+    document.documentElement.classList.toggle('nav-floating', floating);
+    return () => document.documentElement.classList.remove('nav-floating');
+  }, [floating]);
 
   useEffect(() => {
     const onKey = (e) => { if (e.key === 'Escape') { setActive(null); setOpen(false); } };
@@ -33,7 +47,7 @@ export default function Navbar() {
   const leave = () => { closeTimer.current = window.setTimeout(() => setActive(null), 140); };
 
   return (
-    <div className="wrap nav-wrap" ref={root}>
+    <div className={`wrap nav-wrap${floating ? ' nav-float' : ''}`} ref={root}>
       <div className="glass navbar">
         <Link to="/" className="brand" aria-label="JointCommerce home">
           <Wordmark height={22} />

@@ -1420,3 +1420,20 @@ img, svg { display: inline-block; }
   .postergrid .deal-save { white-space: nowrap; font-size: 10px; padding: 2px 6px; }
   .postergrid .deal-store { font-size: 11px; }
 }
+
+/* ---------- floating navbar ---------- */
+.nav-wrap.nav-float { height: 80px; }
+.nav-float .navbar {
+  position: fixed; top: 12px; left: 50%; transform: translateX(-50%); width: calc(100% - 32px); max-width: 1296px; z-index: 60;
+  background: rgba(11, 43, 38, 0.86); border-color: rgba(255, 255, 255, 0.16); color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2), 0 20px 50px -12px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  animation: navDrop 0.4s var(--ease-soft) both;
+}
+.nav-float .navbar .btn.ghost { background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.26); color: #fff; }
+.nav-float .navbar .btn.ghost:hover { background: rgba(255, 255, 255, 0.2); }
+@keyframes navDrop { from { opacity: 0; transform: translate(-50%, -14px); } to { opacity: 1; transform: translate(-50%, 0); } }
+html.nav-floating .filterbar, html.nav-floating .dtabs-wrap { top: 84px; }
+html.nav-floating .map-sticky { top: 150px; height: calc(100vh - 176px); }
+html.nav-floating .dside { top: 160px; }
+@media (max-width: 640px) { .nav-float .navbar { top: 8px; width: calc(100% - 24px); } .nav-wrap.nav-float { height: 72px; } html.nav-floating .filterbar, html.nav-floating .dtabs-wrap { top: 76px; } }
+@media (prefers-reduced-motion: reduce) { .nav-float .navbar { animation: none; } }
