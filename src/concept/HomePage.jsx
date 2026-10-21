@@ -7,6 +7,7 @@ import { search, itemLink } from './search.js';
 import { fmtMiles } from './geo.js';
 import { Badge } from './cards.jsx';
 import { CAT_ICONS } from './catIcons.jsx';
+import ScrollRow from './ScrollRow.jsx';
 
 const CATS = [
   { label: 'Flower', to: '/products?f=flower' },
@@ -17,17 +18,7 @@ const CATS = [
   { label: 'All', text: 'All products', to: '/products' },
 ];
 
-function Row({ title, to, children }) {
-  return (
-    <section className="hm-sec" data-reveal>
-      <div className="hm-head">
-        <h2 className="hm-title">{title}</h2>
-        <Link to={to} className="hm-more" aria-label={`See all: ${title}`}><ChevronRight className="ic18" /></Link>
-      </div>
-      <div className="hm-row">{children}</div>
-    </section>
-  );
-}
+const Row = ScrollRow;
 
 // Home: two promo tiles, category tiles, featured brands, then dispensaries, deals and strains near the place.
 export default function HomePage() {
@@ -61,14 +52,11 @@ export default function HomePage() {
         )}
       </section>
 
-      <section className="hm-sec" data-reveal>
-        <div className="hm-head"><h2 className="hm-title">Browse by category</h2></div>
-        <div className="hm-row hm-cats">
-          {CATS.map((c) => { const Ic = CAT_ICONS[c.label]; return (
-            <Link key={c.label} to={c.to} className="hm-cat"><span>{c.text || c.label}</span><Ic /></Link>
-          ); })}
-        </div>
-      </section>
+      <ScrollRow title="Browse by category" className="hm-cats">
+        {CATS.map((c) => { const Ic = CAT_ICONS[c.label]; return (
+          <Link key={c.label} to={c.to} className="hm-cat"><span>{c.text || c.label}</span><Ic /></Link>
+        ); })}
+      </ScrollRow>
 
       <Row title="Featured brands" to="/brands">
         {brands.map((b) => (
