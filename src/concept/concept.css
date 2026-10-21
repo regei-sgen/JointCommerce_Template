@@ -99,7 +99,7 @@
 
 /* ===== finder: list + map ===== */
 .finder { display: grid; grid-template-columns: 460px minmax(0, 1fr); height: calc(100vh - var(--top)); min-height: 560px; background: var(--ground); }
-.finder-home { height: 640px; border-top: 1px solid var(--cx-line); border-bottom: 1px solid var(--cx-line); }
+.finder-home { border-top: 1px solid var(--cx-line); border-bottom: 1px solid var(--cx-line); }
 .finder-panel { display: flex; flex-direction: column; min-height: 0; background: #fff; border-right: 1px solid var(--cx-line); }
 .finder-head { padding: 18px 20px 12px; display: flex; flex-direction: column; gap: 10px; border-bottom: 1px solid var(--cx-line); }
 .finder-title { margin: 0; font-size: 20px; font-weight: 800; letter-spacing: -0.03em; line-height: 1.15; text-wrap: balance; }
@@ -126,7 +126,18 @@
 .finder-empty { margin: 20px 10px; padding: 32px 20px; border-radius: 16px; background: var(--ground); text-align: center; display: flex; flex-direction: column; gap: 6px; align-items: center; font-size: 14px; }
 .finder-empty .ic24 { color: var(--teal-deep); }
 
-/* light map */
+/* DOM pins (LeafletMap pins="dom") */
+.pin { position: relative; width: 44px; height: 44px; }
+.pin i { position: absolute; left: 50%; top: 50%; translate: -50% -50%; border-radius: 50%; display: block; }
+.pin-dot { width: 16px; height: 16px; background: var(--teal); border: 2px solid var(--mint); box-shadow: 0 2px 8px rgba(11, 43, 38, 0.25); transition: transform 0.25s var(--ease-soft), background-color 0.25s, border-color 0.25s; }
+.pin-halo { width: 36px; height: 36px; background: rgba(20, 179, 138, 0.22); animation: mkBreathe 2.6s ease-in-out infinite; transition: background-color 0.25s; }
+.pin.hot .pin-dot { background: var(--ink); border-color: var(--teal-light); transform: scale(1.35); }
+.pin.hot .pin-halo { background: rgba(20, 179, 138, 0.34); }
+.pin.dim { opacity: 0.45; }
+.pin.hot { z-index: 1000; }
+@media (prefers-reduced-motion: reduce) { .pin-halo { animation: none; } .pin-dot { transition: none; } }
+
+/* light map
 .tiles-light { filter: saturate(0.8); }
 .finder .leaflet-container { background: #e9eeec; }
 .finder .leaflet-control-attribution { background: rgba(255, 255, 255, 0.75) !important; color: var(--muted) !important; }
@@ -135,7 +146,7 @@
 .finder .mk { transition: r 0.25s, fill 0.25s, fill-opacity 0.25s; }
 
 /* ===== home ===== */
-.finder-home { height: calc(100vh - var(--top)); min-height: 520px; max-height: 760px; }
+.finder-home { height: calc(100vh - var(--top)); min-height: 520px; }
 
 .cols { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; padding: 28px 28px 36px; }
 .col { display: flex; flex-direction: column; border: 1px solid var(--cx-line); border-radius: 18px; background: #fff; overflow: hidden; }

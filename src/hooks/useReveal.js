@@ -70,6 +70,7 @@ export function useReveal(deps = []) {
     };
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', onScroll, { passive: true });
+    onScroll(); // elements already inside the viewport at mount are revealed on the first frame
 
     return () => {
       io.disconnect();

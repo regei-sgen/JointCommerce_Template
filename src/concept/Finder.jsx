@@ -111,8 +111,8 @@ export default function Finder({ cat, place, home = false }) {
       </div>
       <div className="finder-map">
         <LeafletMap
-          key={mapKey} className="finder-leaflet" tiles="light" eager fit wheel={!home}
-          center={[42.3, -71.5]} zoom={8} points={points} hot={hot} focus={focus} focusZoom={12} flyDuration={0.9}
+          key={mapKey} className="finder-leaflet" tiles="light" pins="dom" eager fit wheel={!home}
+          center={[42.3, -71.5]} zoom={8} points={points} hot={hot} focus={focus} focusMode="ensure" flyDuration={0.7}
           ariaLabel={`Map of ${info.label.toLowerCase()} near ${loc}`}
         />
         <div className="finder-legend"><i />{points.length} on the map<span className="muted"> · <Pin className="ic14" />{loc}</span></div>
