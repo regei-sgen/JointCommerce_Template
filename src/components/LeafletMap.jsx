@@ -9,7 +9,10 @@ const TILES = {
   positron: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
   streets: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
   topo: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
+  natgeo: 'https://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}',
 };
+// Deepest zoom a service serves; deeper requests return a placeholder tile. Unlisted services serve past MAX_ZOOM + 1.
+const TILE_MAX_NATIVE = { natgeo: 16 };
 const ATTR = '&copy; <a href="https://www.esri.com/">Esri</a>';
 const ATTR_CARTO = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>';
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -28,7 +31,8 @@ const keyOf = (pt) => pt.slug || `${pt.name}|${pt.city}`;
  *   brought to the front while the rest dim.
  * - `fit=true` fits the initial view to all points instead of using center/zoom.
  * - `tiles` is 'dark' (default, sepia-tinted), 'light' (Esri gray base), 'streets' (Esri streets), 'topo' (Esri
- *   topographic: tan land, hillshade, blue water) or 'positron' (CARTO light; needs an API key on cartocdn).
+ *   topographic), 'natgeo' (Esri National Geographic: tan land, hillshade, served to zoom 16) or 'positron'
+ *   (CARTO light; needs an API key on cartocdn).
  * - `onSelect(pt)` is called from the popup card's button (dom pins only).
  * - `fitControl=true` adds a button that refits the view to all points.
  * - `globeBelow=N`: while the map zoom is below N, an orthographic globe (Globe.jsx) covers the map with
@@ -79,7 +83,12 @@ export default function LeafletMap({
       // lowers the layer's maxZoom by one; MAX_ZOOM + 1 keeps the layer drawing up to the map's own MAX_ZOOM.
       const tileOpts = { maxZoom: MAX_ZOOM + 1, detectRetina: true, updateWhenIdle: true, keepBuffer: 1 };
       if (tiles === 'positron') L.tileLayer(TILES.positron, { ...tileOpts, attribution: ATTR_CARTO, subdomains: 'abcd', className: 'tiles-positron' }).addTo(m);
-      else L.tileLayer(TILES[tiles] || TILES.dark, { ...tileOpts, attribution: ATTR, className: tiles === 'light' ? 'tiles-light' : tiles === 'streets' ? 'tiles-streets' : tiles === 'topo' ? 'tiles-topo' : 'tiles-ink' }).addTo(m);
+      else {
+        const layer = L.tileLayer(TILES[tiles] || TILES.dark, { ...tileOpts, attribution: ATTR, className: tiles === 'light' ? 'tiles-light' : tiles === 'streets' ? 'tiles-streets' : tiles === 'topo' || tiles === 'natgeo' ? 'tiles-topo' : 'tiles-ink' });
+        // Past the service's deepest zoom Leaflet scales those tiles up; under the retina offset the request is one deeper.
+        if (TILE_MAX_NATIVE[tiles]) layer.options.maxNativeZoom = TILE_MAX_NATIVE[tiles] - layer.options.zoomOffset;
+        layer.addTo(m);
+      }
       points.forEach((pt) => {
         if (pins === 'dom') {
           const code = esc((pt.code || String(pt.name || '?').slice(0, 2)).slice(0, 3).toUpperCase());
