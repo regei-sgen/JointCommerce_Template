@@ -10,14 +10,20 @@ const TILES = {
   streets: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
   topo: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
   natgeo: 'https://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}',
+  darkRef: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}',
 };
 // Deepest zoom a service serves; deeper requests return a placeholder tile. Unlisted services serve past MAX_ZOOM + 1.
-const TILE_MAX_NATIVE = { natgeo: 16 };
-// 'brand' tiles: the street basemap run through an SVG duotone (see DUOTONE below) that maps tile luminance
-// onto the palette: ink → teal-deep → teal → teal-light → mint. Water (darker than land on these tiles) lands
-// on teal, land on mint, labels on ink. Pins and labels live in other panes and keep their own colours.
-const DUOTONE_STOPS = [[0x0b, 0x2b, 0x26], [0x0f, 0x7a, 0x60], [0x14, 0xb3, 0x8a], [0x7f, 0xe0, 0xc3], [0xdc, 0xf5, 0xee]];
-const duotoneTable = (i) => DUOTONE_STOPS.map((c) => (c[i] / 255).toFixed(3)).join(' ');
+const TILE_MAX_NATIVE = { natgeo: 16, night: 16 };
+// Duotone tile modes: the basemap runs through an SVG filter that drops its colour and maps luminance (0, .25,
+// .5, .75, 1) onto five palette stops. Pins, tooltips and popups live in other panes and keep their own colours.
+// - brand: Esri streets. Water (darker than land on those tiles) lands on teal, land on mint, labels on ink.
+// - night: Esri dark-gray canvas plus its label reference layer. Water near-black green, land ink, roads a
+//   faint lighter green, labels mint.
+const DUOTONES = {
+  brand: [[0x0b, 0x2b, 0x26], [0x0f, 0x7a, 0x60], [0x14, 0xb3, 0x8a], [0x7f, 0xe0, 0xc3], [0xdc, 0xf5, 0xee]],
+  night: [[0x04, 0x12, 0x0f], [0x0b, 0x2b, 0x26], [0x1b, 0x56, 0x4a], [0x8f, 0xdf, 0xc7], [0xe4, 0xf8, 0xf1]],
+};
+const duotoneTable = (name, i) => DUOTONES[name].map((c) => (c[i] / 255).toFixed(3)).join(' ');
 const ATTR = '&copy; <a href="https://www.esri.com/">Esri</a>';
 const ATTR_CARTO = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>';
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -37,7 +43,8 @@ const keyOf = (pt) => pt.slug || `${pt.name}|${pt.city}`;
  * - `fit=true` fits the initial view to all points instead of using center/zoom.
  * - `tiles` is 'dark' (default, sepia-tinted), 'light' (Esri gray base), 'streets' (Esri streets), 'topo' (Esri
  *   topographic), 'natgeo' (Esri National Geographic: tan land, hillshade, served to zoom 16), 'brand' (Esri
- *   streets through the palette duotone) or 'positron' (CARTO light; needs an API key on cartocdn).
+ *   streets through the palette duotone), 'night' (Esri dark canvas + labels through the night duotone) or
+ *   'positron' (CARTO light; needs an API key on cartocdn).
  * - `onSelect(pt)` is called from the popup card's button (dom pins only).
  * - `fitControl=true` adds a button that refits the view to all points.
  * - `globeBelow=N`: while the map zoom is below N, an orthographic globe (Globe.jsx) covers the map with
@@ -89,11 +96,17 @@ export default function LeafletMap({
       const tileOpts = { maxZoom: MAX_ZOOM + 1, detectRetina: true, updateWhenIdle: true, keepBuffer: 1 };
       if (tiles === 'positron') L.tileLayer(TILES.positron, { ...tileOpts, attribution: ATTR_CARTO, subdomains: 'abcd', className: 'tiles-positron' }).addTo(m);
       else {
-        const url = tiles === 'brand' ? TILES.streets : TILES[tiles] || TILES.dark;
-        const layer = L.tileLayer(url, { ...tileOpts, attribution: ATTR, className: tiles === 'light' ? 'tiles-light' : tiles === 'streets' ? 'tiles-streets' : tiles === 'brand' ? 'tiles-brand' : tiles === 'topo' || tiles === 'natgeo' ? 'tiles-topo' : 'tiles-ink' });
+        const url = tiles === 'brand' ? TILES.streets : tiles === 'night' ? TILES.dark : TILES[tiles] || TILES.dark;
+        const cls = tiles === 'light' ? 'tiles-light' : tiles === 'streets' ? 'tiles-streets' : tiles === 'brand' ? 'tiles-brand' : tiles === 'night' ? 'tiles-night' : tiles === 'topo' || tiles === 'natgeo' ? 'tiles-topo' : 'tiles-ink';
+        const layer = L.tileLayer(url, { ...tileOpts, attribution: ATTR, className: cls });
         // Past the service's deepest zoom Leaflet scales those tiles up; under the retina offset the request is one deeper.
         if (TILE_MAX_NATIVE[tiles]) layer.options.maxNativeZoom = TILE_MAX_NATIVE[tiles] - layer.options.zoomOffset;
         layer.addTo(m);
+        if (tiles === 'night') { // the dark canvas carries no labels; its reference layer does
+          const ref = L.tileLayer(TILES.darkRef, { ...tileOpts, className: cls, zIndex: 2 });
+          ref.options.maxNativeZoom = TILE_MAX_NATIVE.night - ref.options.zoomOffset;
+          ref.addTo(m);
+        }
       }
       points.forEach((pt) => {
         if (pins === 'dom') {
@@ -197,21 +210,21 @@ export default function LeafletMap({
   const showGlobe = globeBelow > 0 && zoomLevel !== null && zoomLevel < globeBelow;
   const zoomInFromGlobe = ([lat, lng]) => { if (map.current) map.current.setView([lat, lng], globeBelow, { animate: false }); };
   return (
-    <div className={`leaflet-wrap ${className}`} role={ariaLabel ? 'region' : undefined} aria-label={ariaLabel}>
+    <div className={`leaflet-wrap${tiles === 'night' ? ' map-night' : ''} ${className}`} role={ariaLabel ? 'region' : undefined} aria-label={ariaLabel}>
       <div ref={el} className="leaflet-host" />
-      {tiles === 'brand' && (
+      {DUOTONES[tiles] && (
         <svg width="0" height="0" aria-hidden="true" focusable="false" style={{ position: 'absolute' }}>
-          <filter id="jc-duotone" colorInterpolationFilters="sRGB">
+          <filter id={`jc-duotone-${tiles}`} colorInterpolationFilters="sRGB">
             <feColorMatrix type="saturate" values="0" />
             <feComponentTransfer>
-              <feFuncR type="table" tableValues={duotoneTable(0)} />
-              <feFuncG type="table" tableValues={duotoneTable(1)} />
-              <feFuncB type="table" tableValues={duotoneTable(2)} />
+              <feFuncR type="table" tableValues={duotoneTable(tiles, 0)} />
+              <feFuncG type="table" tableValues={duotoneTable(tiles, 1)} />
+              <feFuncB type="table" tableValues={duotoneTable(tiles, 2)} />
             </feComponentTransfer>
           </filter>
         </svg>
       )}
-      {showGlobe && <Globe points={points} hot={hot} center={globeCenter} onZoomIn={zoomInFromGlobe} onSelect={onSelect} />}
+      {showGlobe && <Globe points={points} hot={hot} center={globeCenter} onZoomIn={zoomInFromGlobe} onSelect={onSelect} dark={tiles === 'night'} />}
     </div>
   );
 }

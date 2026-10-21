@@ -13,11 +13,17 @@ const keyOf = (pt) => pt.slug || `${pt.name}|${pt.city}`;
  * `center` ([lat, lng]) sets the initial rotation. Wheel-up, double-click or the Zoom in button
  * calls `onZoomIn([lat, lng])` with the point under the globe centre; clicking a pin calls `onSelect(pt)`.
  */
-export default function Globe({ points = [], hot, center, onZoomIn, onSelect, className = '' }) {
+// Two palettes: light (mint ocean, pale land) and dark (near-black green ocean, ink land, teal glow).
+const PALETTE = {
+  light: { ocean0: '#dcf5ee', ocean1: '#b9e6d6', grat: 'rgba(11,43,38,0.07)', land: '#eef9f5', coast: 'rgba(11,43,38,0.18)', limb: 'rgba(11,43,38,0.22)', glow: 'rgba(11,43,38,0.06)', ring: '#fff', labelBg: '#fff', labelLine: 'rgba(11,43,38,0.14)' },
+  dark: { ocean0: '#0f3a33', ocean1: '#04120f', grat: 'rgba(127,224,195,0.08)', land: '#123a34', coast: 'rgba(127,224,195,0.35)', limb: 'rgba(31,201,156,0.55)', glow: 'rgba(31,201,156,0.14)', ring: '#04120f', labelBg: '#0b2b26', labelLine: 'rgba(127,224,195,0.4)' },
+};
+
+export default function Globe({ points = [], hot, center, onZoomIn, onSelect, className = '', dark = false }) {
   const canvas = useRef(null);
   const state = useRef({ rot: [0, 0], drag: null, raf: 0, idle: true, hoverKey: null });
-  const propsRef = useRef({ points, hot, onZoomIn, onSelect });
-  propsRef.current = { points, hot, onZoomIn, onSelect };
+  const propsRef = useRef({ points, hot, onZoomIn, onSelect, dark });
+  propsRef.current = { points, hot, onZoomIn, onSelect, dark };
 
   useEffect(() => {
     if (center) state.current.rot = [-center[1], -center[0]];
@@ -35,6 +41,7 @@ export default function Globe({ points = [], hot, center, onZoomIn, onSelect, cl
     const styles = getComputedStyle(document.documentElement);
     const ink = styles.getPropertyValue('--ink').trim() || '#0b2b26';
     const teal = styles.getPropertyValue('--teal').trim() || '#14b38a';
+    const mint = styles.getPropertyValue('--mint').trim() || '#dcf5ee';
 
     const resize = () => {
       const box = el.parentElement.getBoundingClientRect();
@@ -60,21 +67,22 @@ export default function Globe({ points = [], hot, center, onZoomIn, onSelect, cl
     };
 
     const draw = () => {
-      const { points: pts, hot: h0 } = propsRef.current;
+      const { points: pts, hot: h0, dark: isDark } = propsRef.current;
+      const c = isDark ? PALETTE.dark : PALETTE.light;
       const hotKeys = h0 == null ? new Set() : new Set(Array.isArray(h0) ? h0 : [h0]);
       projection.rotate(st.rot);
       ctx.clearRect(0, 0, w, h);
       // ocean
       const g = ctx.createRadialGradient(w / 2 - r * 0.35, h / 2 - r * 0.35, r * 0.1, w / 2, h / 2, r);
-      g.addColorStop(0, '#dcf5ee'); g.addColorStop(1, '#b9e6d6');
+      g.addColorStop(0, c.ocean0); g.addColorStop(1, c.ocean1);
       ctx.beginPath(); ctx.arc(w / 2, h / 2, r, 0, Math.PI * 2); ctx.fillStyle = g; ctx.fill();
       // graticule
-      ctx.beginPath(); path(GRATICULE); ctx.strokeStyle = 'rgba(11,43,38,0.07)'; ctx.lineWidth = 0.6; ctx.stroke();
+      ctx.beginPath(); path(GRATICULE); ctx.strokeStyle = c.grat; ctx.lineWidth = 0.6; ctx.stroke();
       // land
-      ctx.beginPath(); path(LAND); ctx.fillStyle = '#eef9f5'; ctx.fill(); ctx.strokeStyle = 'rgba(11,43,38,0.18)'; ctx.lineWidth = 0.7; ctx.stroke();
+      ctx.beginPath(); path(LAND); ctx.fillStyle = c.land; ctx.fill(); ctx.strokeStyle = c.coast; ctx.lineWidth = 0.7; ctx.stroke();
       // limb
-      ctx.beginPath(); ctx.arc(w / 2, h / 2, r, 0, Math.PI * 2); ctx.strokeStyle = 'rgba(11,43,38,0.22)'; ctx.lineWidth = 1; ctx.stroke();
-      ctx.beginPath(); ctx.arc(w / 2, h / 2, r + 10, 0, Math.PI * 2); ctx.strokeStyle = 'rgba(11,43,38,0.06)'; ctx.lineWidth = 12; ctx.stroke();
+      ctx.beginPath(); ctx.arc(w / 2, h / 2, r, 0, Math.PI * 2); ctx.strokeStyle = c.limb; ctx.lineWidth = 1; ctx.stroke();
+      ctx.beginPath(); ctx.arc(w / 2, h / 2, r + 10, 0, Math.PI * 2); ctx.strokeStyle = c.glow; ctx.lineWidth = 12; ctx.stroke();
       // pins (front hemisphere only), hot/featured on top
       const front = pts.filter((pt) => typeof pt.lat === 'number' && geoDistance([pt.lng, pt.lat], [-st.rot[0], -st.rot[1]]) <= Math.PI / 2);
       const ordered = [...front].sort((a, b) => (hotKeys.has(keyOf(a)) ? 1 : 0) - (hotKeys.has(keyOf(b)) ? 1 : 0));
@@ -84,15 +92,15 @@ export default function Globe({ points = [], hot, center, onZoomIn, onSelect, cl
         const key = keyOf(pt); const isHot = hotKeys.has(key) || st.hoverKey === key;
         const rad = isHot ? 9 : pt.featured ? 6.5 : 5;
         ctx.globalAlpha = dim && !isHot ? 0.45 : 1;
-        ctx.beginPath(); ctx.arc(p[0], p[1], rad + 2, 0, Math.PI * 2); ctx.fillStyle = '#fff'; ctx.fill();
-        ctx.beginPath(); ctx.arc(p[0], p[1], rad, 0, Math.PI * 2); ctx.fillStyle = isHot || pt.featured ? ink : teal; ctx.fill();
+        ctx.beginPath(); ctx.arc(p[0], p[1], rad + 2, 0, Math.PI * 2); ctx.fillStyle = c.ring; ctx.fill();
+        ctx.beginPath(); ctx.arc(p[0], p[1], rad, 0, Math.PI * 2); ctx.fillStyle = isDark ? (isHot || pt.featured ? mint : teal) : (isHot || pt.featured ? ink : teal); ctx.fill();
         if (isHot && pt.name) {
           ctx.globalAlpha = 1; ctx.font = '600 12px Inter, system-ui, sans-serif';
           const label = String(pt.name); const tw = ctx.measureText(label).width + 16;
           const lx = p[0] - tw / 2; const ly = p[1] - rad - 30;
-          ctx.fillStyle = '#fff'; ctx.strokeStyle = 'rgba(11,43,38,0.14)'; ctx.lineWidth = 1;
+          ctx.fillStyle = c.labelBg; ctx.strokeStyle = c.labelLine; ctx.lineWidth = 1;
           ctx.beginPath(); ctx.roundRect(lx, ly, tw, 24, 8); ctx.fill(); ctx.stroke();
-          ctx.fillStyle = ink; ctx.textBaseline = 'middle'; ctx.fillText(label, lx + 8, ly + 12);
+          ctx.fillStyle = isDark ? mint : ink; ctx.textBaseline = 'middle'; ctx.fillText(label, lx + 8, ly + 12);
         }
       }
       ctx.globalAlpha = 1;
