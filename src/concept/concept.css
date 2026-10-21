@@ -606,6 +606,7 @@
 
 /* ===== store page: third-party live menu ===== */
 .menu-embed { display: flex; flex-direction: column; gap: 10px; margin: 0 12px; }
+.menu-embed-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .menu-embed-cats { padding-bottom: 12px; border-bottom: 1px solid var(--cx-line); }
 .menu-embed-cats .chip { background: #fff; }
 .menu-embed-gate { margin: 0; }
@@ -775,6 +776,8 @@ html.cx-map, html.cx-map body { overflow: hidden; }
 .dp-bgmap { position: fixed; inset: 0; z-index: 0; background: #f0e8c8; }
 .dp-bgmap-leaflet { position: absolute; inset: 0; }
 .dp-bgmap .leaflet-top.leaflet-left { top: 84px; left: 572px; }
+.cx-map .dp.dp-wide { width: min(960px, calc(100vw - 32px)); }
+.dp-bgmap.wide .leaflet-top.leaflet-left { left: calc(min(960px, 100vw - 32px) + 32px); }
 .cx-map .dp { position: fixed; left: 16px; top: 84px; bottom: 16px; width: 540px; z-index: 600; overflow-y: auto; padding: 14px 14px 20px; background: #fff; border: 1px solid var(--cx-line); border-radius: 18px; box-shadow: var(--cx-float); scrollbar-width: thin; }
 .cx-map .dp-crumbs { margin-bottom: 10px; }
 .cx-map .dp-head { grid-template-columns: 56px minmax(0, 1fr); gap: 14px; padding: 16px; box-shadow: none; }

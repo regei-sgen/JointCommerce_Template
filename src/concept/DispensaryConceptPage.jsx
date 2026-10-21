@@ -38,6 +38,7 @@ function Store_({ d, details, slug, mapMode, setMapMode }) {
   const [sort, setSort] = useState('price');
   const [week, setWeek] = useState(false);
   const [more, setMore] = useState(false);
+  const [embedOpen, setEmbedOpen] = useState(false); // a loaded third-party menu widens the map-mode panel
   // Read more shows only when the clamped About block overflows. `clamped` starts null (unknown): the block
   // renders clamped, is measured, and only a measured false lifts the clamp. Kept while open.
   const aboutRef = useRef(null);
@@ -59,12 +60,12 @@ function Store_({ d, details, slug, mapMode, setMapMode }) {
   return (
     <>
     {mapMode && typeof d.lat === 'number' && (
-      <div className="dp-bgmap">
+      <div className={`dp-bgmap${embedOpen ? ' wide' : ''}`}>
         <LeafletMap className="dp-bgmap-leaflet" tiles="streets" pins="dom" eager points={nearby} hot={d.slug} center={[d.lat, d.lng]} zoom={13} focus={{ lat: d.lat, lng: d.lng }} focusMode="ensure" globeBelow={4} onSelect={(pt) => navigate(itemLink('dispensaries', pt))} ariaLabel={`Map around ${d.name}`} />
         <button type="button" className="map-mode-btn" aria-pressed="true" onClick={() => setMapMode && setMapMode(false)}><Close className="ic14" />Exit map mode</button>
       </div>
     )}
-    <div className="dp">
+    <div className={`dp${embedOpen ? ' dp-wide' : ''}`}>
       <nav className="dp-crumbs" aria-label="Breadcrumb"><Link to="/dispensaries"><ChevronLeft className="ic14" />Dispensaries</Link></nav>
 
       <div className="dp-head" data-reveal>
@@ -100,7 +101,7 @@ function Store_({ d, details, slug, mapMode, setMapMode }) {
           {menu.length === 0 && embed ? (
             <section className="dp-sec" id="menu" data-reveal style={{ '--i': 1 }}>
               <h2 className="dp-h2"><Store className="ic18" />Menu<LiveDot className="dp-live">Live on {embed.p}</LiveDot></h2>
-              <MenuEmbed embed={embed} store={d} />
+              <MenuEmbed embed={embed} store={d} onToggle={setEmbedOpen} />
             </section>
           ) : (
           <section className="dp-sec" id="menu" data-reveal style={{ '--i': 1 }}>
@@ -195,8 +196,9 @@ function Store_({ d, details, slug, mapMode, setMapMode }) {
 const LIVE_SITE = 'https://jointcommerce-web-547419541671.us-central1.run.app';
 // Third-party menu: category chips from the embed's attribute list, then a click-to-load frame.
 // `js` embeds (Dutchie) run the provider's script inside a container; `src` embeds are an iframe.
-function MenuEmbed({ embed, store }) {
-  const [loaded, setLoaded] = useState(false);
+function MenuEmbed({ embed, store, onToggle }) {
+  const [loaded, setLoadedState] = useState(false);
+  const setLoaded = (v) => { setLoadedState(v); if (onToggle) onToggle(v); };
   const host = useRef(null);
   useEffect(() => {
     if (!loaded || !embed.js || !host.current) return undefined;
@@ -222,10 +224,16 @@ function MenuEmbed({ embed, store }) {
             {open && <a href={open} target="_blank" rel="noopener noreferrer" className="btn ghost sm">Open on {embed.p}<span className="srl"> (opens in a new tab)</span></a>}
           </span>
         </div>
-      ) : embed.js ? (
-        <div className="menu-embed-frame"><div id="dutchie--embed__container" ref={host} /></div>
       ) : (
-        <div className="menu-embed-frame menu-embed-iframe"><iframe src={embed.src} title={`${store.name} menu on ${embed.p}`} loading="lazy" allow="geolocation; clipboard-write" referrerPolicy="strict-origin-when-cross-origin" /></div>
+        <>
+          <div className="menu-embed-bar">
+            <span className="muted small">Prices and stock shown by {embed.p}.</span>
+            <button type="button" className="link link-sm" onClick={() => setLoaded(false)}>Hide menu</button>
+          </div>
+          {embed.js
+            ? <div className="menu-embed-frame"><div id="dutchie--embed__container" ref={host} /></div>
+            : <div className="menu-embed-frame menu-embed-iframe"><iframe src={embed.src} title={`${store.name} menu on ${embed.p}`} loading="lazy" allow="geolocation; clipboard-write" referrerPolicy="strict-origin-when-cross-origin" /></div>}
+        </>
       )}
     </div>
   );
