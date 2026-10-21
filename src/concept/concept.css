@@ -944,6 +944,9 @@ button.link:hover, button.link-sm:hover { text-decoration: underline; text-under
 .cart-actions .cart-clear { margin-right: auto; color: var(--muted); }
 .co-summary .link-sm { margin-top: 0; }
 
+/* map mode: rows inside the floating panels render in place; the staggered entrance stays off there, since a
+   nested scroller shows rows the viewport observer has not yet marked */
+.cx-map .finder-list [data-reveal], .cx-map .dp [data-reveal] { opacity: 1; translate: 0 0; transition: none; }
 /* map mode: the exit control, legend and panel tab stay above the globe layer (z 650) */
 .map-mode-btn, .cx-map .finder-legend, .cx-map .map-panel-tab { z-index: 700; }
 .cx-map .globe-zoom { z-index: 700; }

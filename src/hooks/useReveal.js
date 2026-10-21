@@ -68,14 +68,15 @@ export function useReveal(deps = []) {
     const onScroll = () => {
       if (!raf && pending.size) raf = requestAnimationFrame(sweep);
     };
-    window.addEventListener('scroll', onScroll, { passive: true });
+    // capture: scroll events do not bubble, so nested scroll panels (finder list, map-mode sheet) are heard too
+    window.addEventListener('scroll', onScroll, { passive: true, capture: true });
     window.addEventListener('resize', onScroll, { passive: true });
     onScroll(); // elements already inside the viewport at mount are revealed on the first frame
 
     return () => {
       io.disconnect();
       mo.disconnect();
-      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('scroll', onScroll, { capture: true });
       window.removeEventListener('resize', onScroll);
       if (raf) cancelAnimationFrame(raf);
     };
