@@ -123,7 +123,7 @@ export default function Finder({ cat, place, home = false }) {
       </div>
       <div className="finder-map">
         <LeafletMap
-          key={mapKey} className="finder-leaflet" tiles="natgeo" pins="dom" eager fit fitControl globeBelow={4} wheel={!home}
+          key={mapKey} className="finder-leaflet" tiles="brand" pins="dom" eager fit fitControl globeBelow={4} wheel={!home}
           onSelect={(pt) => navigate(itemLink('dispensaries', pt))}
           center={[42.3, -71.5]} zoom={8} points={points} hot={hot} focus={focus} focusMode="ensure" flyDuration={0.7}
           ariaLabel={`Map of ${info.label.toLowerCase()} near ${loc}`}

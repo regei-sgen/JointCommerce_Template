@@ -66,12 +66,12 @@ export default function Globe({ points = [], hot, center, onZoomIn, onSelect, cl
       ctx.clearRect(0, 0, w, h);
       // ocean
       const g = ctx.createRadialGradient(w / 2 - r * 0.35, h / 2 - r * 0.35, r * 0.1, w / 2, h / 2, r);
-      g.addColorStop(0, '#f6f9f8'); g.addColorStop(1, '#dfe6e3');
+      g.addColorStop(0, '#dcf5ee'); g.addColorStop(1, '#b9e6d6');
       ctx.beginPath(); ctx.arc(w / 2, h / 2, r, 0, Math.PI * 2); ctx.fillStyle = g; ctx.fill();
       // graticule
       ctx.beginPath(); path(GRATICULE); ctx.strokeStyle = 'rgba(11,43,38,0.07)'; ctx.lineWidth = 0.6; ctx.stroke();
       // land
-      ctx.beginPath(); path(LAND); ctx.fillStyle = '#cdd6d2'; ctx.fill(); ctx.strokeStyle = 'rgba(11,43,38,0.18)'; ctx.lineWidth = 0.7; ctx.stroke();
+      ctx.beginPath(); path(LAND); ctx.fillStyle = '#eef9f5'; ctx.fill(); ctx.strokeStyle = 'rgba(11,43,38,0.18)'; ctx.lineWidth = 0.7; ctx.stroke();
       // limb
       ctx.beginPath(); ctx.arc(w / 2, h / 2, r, 0, Math.PI * 2); ctx.strokeStyle = 'rgba(11,43,38,0.22)'; ctx.lineWidth = 1; ctx.stroke();
       ctx.beginPath(); ctx.arc(w / 2, h / 2, r + 10, 0, Math.PI * 2); ctx.strokeStyle = 'rgba(11,43,38,0.06)'; ctx.lineWidth = 12; ctx.stroke();

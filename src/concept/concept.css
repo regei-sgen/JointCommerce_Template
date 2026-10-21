@@ -549,7 +549,8 @@
 /* ===== map v2: initial pins, tooltip, card popup, fit control ===== */
 .tiles-positron { filter: saturate(0.9); }
 .tiles-streets { filter: none; }
-.finder .leaflet-container, .dp-map .leaflet-container { background: #f2f4f3; }
+.tiles-brand { filter: url(#jc-duotone); }
+.finder .leaflet-container, .dp-map .leaflet-container { background: #d4f0e5; } /* behind tiles still loading: the duotone's light end */
 .pin { width: 44px; height: 44px; margin: 0; }
 .pin > * { position: absolute; left: 50%; top: 50%; translate: -50% -50%; border-radius: 50%; }
 .pin-halo { width: 40px; height: 40px; background: rgba(11, 43, 38, 0.08); opacity: 0; transition: opacity 0.25s; animation: none; }
