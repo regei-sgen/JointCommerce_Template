@@ -185,7 +185,7 @@ for (const b of rawB) {
 const strainNames = rawS.filter((s) => s.slug && s.name && s.name.length >= 4).map((s) => [s.slug, s.name.toLowerCase()]);
 const storesOfStrain = {}; const strainsOfStore = {};
 for (const [slug, items] of Object.entries(menusOut)) {
-  const names = items.map((m) => m.name.toLowerCase());
+  const names = items.filter((m) => m.category !== 'Edibles').map((m) => m.name.toLowerCase()); // edibles carry flavour names, not strains
   for (const [sslug, sname] of strainNames) {
     if (names.some((n) => n.includes(sname))) { (storesOfStrain[sslug] ||= []).push(slug); (strainsOfStore[slug] ||= []).push(sslug); }
   }

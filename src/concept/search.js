@@ -164,6 +164,22 @@ export const strainsAt = (slug) => { const set = new Set(DATA.strainsOfStore[slu
 export const brandsAt = (slug) => { const set = new Set(DATA.brandsOfStore[slug] || []); return set.size ? DATA.brands.filter((b) => set.has(b.slug)) : []; };
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+// Minutes since midnight for "9:00 AM"; null for "Closed" or anything unparsable.
+const minutesOf = (t) => { const m = /^(\d{1,2}):(\d{2})\s*(AM|PM)$/i.exec(String(t || '').trim()); if (!m) return null; let h = Number(m[1]) % 12; if (m[3].toUpperCase() === 'PM') h += 12; return h * 60 + Number(m[2]); };
+// Open or closed right now from the snapshot's hours for `slug` (browser local time); null when the
+// snapshot has no hours for the store, so callers can leave status out rather than guess.
+export function openNow(slug) {
+  const x = DATA.details[slug];
+  if (!x || !x.hours || !x.hours.length) return null;
+  const now = new Date();
+  const today = x.hours.find((h) => h.day === DAYS[(now.getDay() + 6) % 7]);
+  if (!today) return null;
+  const open = minutesOf(today.open); const close = minutesOf(today.close);
+  if (open === null || close === null) return { open: false, label: 'Closed today' };
+  const t = now.getHours() * 60 + now.getMinutes();
+  const isOpen = close > open ? t >= open && t < close : t >= open || t < close; // overnight hours wrap past midnight
+  return { open: isOpen, label: isOpen ? `Open until ${today.close}` : `Closed · opens ${today.open}` };
+}
 // Store page details: snapshot details when present, otherwise defaults built from the listing row.
 export function detailsFor(slug, d) {
   const x = DATA.details[slug] || {};

@@ -39,15 +39,22 @@ export const COUNTRY_SLUG = 'united-states';
 
 // Replace the place list with the snapshot's states and cities (biggest cities first so a prefix
 // match lands on the larger one). `geo` = { states: [{abbr,name,...}], cities: { abbr: [{name,lat,lng,count}] } }.
+let STATE_LIST = []; // [{ abbr, name, count }] biggest first, from the snapshot
 export function setPlaces(geo) {
   if (!geo || !geo.states) return;
   STATES = Object.fromEntries(geo.states.map((s) => [s.abbr, s.name]));
+  STATE_LIST = geo.states.filter((s) => s.count > 0).map((s) => ({ abbr: s.abbr, name: s.name, count: s.count })).sort((a, b) => b.count - a.count);
   const list = [];
   for (const [ab, cities] of Object.entries(geo.cities || {})) for (const c of cities) if (typeof c.lat === 'number') list.push({ name: `${c.name}, ${ab}`, lat: c.lat, lng: c.lng, count: c.count || 0 });
   list.sort((a, b) => b.count - a.count);
   if (list.length) PLACES = list;
 }
 export const placeCount = () => PLACES.length;
+// The n places with the most dispensaries (PLACES is sorted by count) and the n biggest states.
+export const topPlaces = (n) => PLACES.filter((p) => p.count > 0).slice(0, n);
+export const topStates = (n) => STATE_LIST.slice(0, n);
+// /in/united-states/<state> for a state entry.
+export const statePath = (s) => `/in/${COUNTRY_SLUG}/${slug(s.name)}`;
 export const slug = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 const abbrOf = (p) => (p.name.split(',')[1] || '').trim();
 const cityOf = (p) => p.name.split(',')[0].trim();

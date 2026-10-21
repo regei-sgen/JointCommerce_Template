@@ -40,9 +40,9 @@ export function TypeChip({ type, small }) {
   return <span className={`chip ${type}${small ? ' chip-sm' : ''}`}>{typeLabel[type]}</span>;
 }
 
-export function LiveDot({ children, className = '' }) {
+export function LiveDot({ children, className = '', off = false }) {
   return (
-    <span className={`live ${className}`}>
+    <span className={`live${off ? ' off' : ''} ${className}`}>
       <i />
       {children}
     </span>
