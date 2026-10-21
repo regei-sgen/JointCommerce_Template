@@ -23,12 +23,17 @@ const TYPE = (t) => { const n = String(t || '').toLowerCase(); if (n.startsWith(
 // are stripped and common entities decoded; plain text is split on blank lines.
 const ENT = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ', rsquo: '\u2019', lsquo: '\u2018', rdquo: '\u201d', ldquo: '\u201c', ndash: '\u2013', mdash: '\u2014', hellip: '\u2026' };
 const decode = (s) => s.replace(/&(#x?[0-9a-f]+|[a-z]+);/gi, (m, e) => (e[0] === '#' ? String.fromCodePoint(parseInt(e[1] === 'x' || e[1] === 'X' ? e.slice(2) : e.slice(1), e[1] === 'x' || e[1] === 'X' ? 16 : 10)) : ENT[e.toLowerCase()] ?? m));
+// Third-party marketplace references are dropped: a sentence mentioning one is removed from its paragraph
+// (an emptied paragraph is dropped), and a website URL on that host is blanked (scrubUrl).
+const SCRUB = /weedmaps/i;
+const scrubText = (p) => p.split(/(?<=[.!?])\s+/).filter((sent) => !SCRUB.test(sent)).join(' ').trim();
+const scrubUrl = (u) => (SCRUB.test(String(u || '')) ? '' : u);
 const paragraphs = (text, max = 6) => {
   const t = String(text || '');
   const parts = /<[a-z][^>]*>/i.test(t)
     ? t.replace(/<\/(p|div|li|h[1-6]|blockquote|tr)>|<br\s*\/?>/gi, '\n\n').replace(/<[^>]+>/g, '').split(/\n\s*\n/)
     : t.split(/\r?\n\s*\r?\n/);
-  return parts.map((p) => decode(p).replace(/\s+/g, ' ').trim()).filter(Boolean).slice(0, max);
+  return parts.map((p) => scrubText(decode(p).replace(/\s+/g, ' ').trim())).filter(Boolean).slice(0, max);
 };
 const oneLine = (text, n) => paragraphs(text, 50).join(' ').slice(0, n);
 
@@ -83,7 +88,7 @@ const dispensaries = [...seenIds.values()].map((d) => {
     slug: d.slug, name: d.name, code: initials(d.name), city: d.city || '', state: d.state || '', zip: d.zip_code || '',
     lat: num(d.latitude), lng: num(d.longitude), rating: num(d.rating) || 0, reviews: num(d.review_count) || 0,
     open: !!d.is_open, status: d.is_open ? 'Open now' : 'Closed now', delivery: !!d.has_delivery || !!(embed && embed.modes && embed.modes.includes('delivery')), pickup: d.has_pickup !== false, verified: !!d.is_verified, claimed: !!d.is_claimed,
-    pinned: !!d.is_pinned, premium: !!d.is_premium, phone: d.phone_number || '', website: d.website || '', logo: d.logo || '',
+    pinned: !!d.is_pinned, premium: !!d.is_premium, phone: d.phone_number || '', website: scrubUrl(d.website || ''), logo: d.logo || '',
     type: d.dispensary_type && d.dispensary_type.title ? d.dispensary_type.title : '',
     products: details[d.slug] ? num(details[d.slug].menu_item_count) || 0 : 0,
     menu: embed ? embed.p : '',
@@ -203,7 +208,7 @@ const brands = rawB.filter((b) => b.slug && b.name).map((b, i) => {
   const about = paragraphs(det.description || b.description);
   const parent = det.parent_brand && det.parent_brand.slug !== b.slug ? { name: det.parent_brand.name, slug: det.parent_brand.slug } : null;
   const children = (det.child_brands || []).filter((c) => c && c.slug).map((c) => ({ name: c.name, slug: c.slug }));
-  return clean({ slug: b.slug, name: b.name, initial: initials(b.name), type, category: type, menus: stores.length, products: num(b.product_count) || (links[b.slug] ? links[b.slug].products.length : 0), states, blurb: oneLine(b.description, 140), about, verified: !!b.is_verified, claimed: !!b.is_claimed, logo: b.logo || '', website: b.website || '', social: Object.keys(social).length ? social : null, parent, children: children.length ? children : null, address: b.address || '', city: b.city || '', stateName: b.state || '', country: b.country || '', rating: num(b.rating) || 0, reviews: num(b.review_count) || 0, featured: !!(b.is_verified || b.is_claimed), pic: i % 4, tags: [] });
+  return clean({ slug: b.slug, name: b.name, initial: initials(b.name), type, category: type, menus: stores.length, products: num(b.product_count) || (links[b.slug] ? links[b.slug].products.length : 0), states, blurb: oneLine(b.description, 140), about, verified: !!b.is_verified, claimed: !!b.is_claimed, logo: b.logo || '', website: scrubUrl(b.website || ''), social: Object.keys(social).length ? social : null, parent, children: children.length ? children : null, address: b.address || '', city: b.city || '', stateName: b.state || '', country: b.country || '', rating: num(b.rating) || 0, reviews: num(b.review_count) || 0, featured: !!(b.is_verified || b.is_claimed), pic: i % 4, tags: [] });
 });
 
 // ---- strains ----
@@ -221,7 +226,7 @@ for (const [slug, det] of Object.entries(details)) {
   const hours = DAYS.map((day) => { const x = h[day] || {}; return { day: cap(day), open: x.open === false ? 'Closed' : hhmm(x.start) || '9:00 AM', close: x.open === false ? '' : hhmm(x.end) || '5:00 PM' }; });
   const about = paragraphs(det.description);
   const amenities = (det.amenities || []).map((a) => (typeof a === 'string' ? a : a.amenity || a.name)).filter(Boolean);
-  detailsOut[slug] = clean({ hours, about, amenities, address: det.address || '', address2: det.address2 || '', zip: det.zip_code || '', phone: det.phone_number || '', website: det.website || '', deliveryRadius: num(det.delivery_radius_miles), menuCount: num(det.menu_item_count) || 0, license: det.license_number || '' });
+  detailsOut[slug] = clean({ hours, about, amenities, address: det.address || '', address2: det.address2 || '', zip: det.zip_code || '', phone: det.phone_number || '', website: scrubUrl(det.website || ''), deliveryRadius: num(det.delivery_radius_miles), menuCount: num(det.menu_item_count) || 0, license: det.license_number || '' });
 }
 
 // ---- geo ----
