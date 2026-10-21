@@ -16,7 +16,7 @@ const keyOf = (pt) => pt.slug || `${pt.name}|${pt.city}`;
 // Two palettes: light (mint ocean, pale land) and dark (near-black green ocean, ink land, teal glow).
 const PALETTE = {
   light: { ocean0: '#dcf5ee', ocean1: '#b9e6d6', grat: 'rgba(11,43,38,0.07)', land: '#eef9f5', coast: 'rgba(11,43,38,0.18)', limb: 'rgba(11,43,38,0.22)', glow: 'rgba(11,43,38,0.06)', ring: '#fff', labelBg: '#fff', labelLine: 'rgba(11,43,38,0.14)' },
-  dark: { ocean0: '#0f3a33', ocean1: '#04120f', grat: 'rgba(127,224,195,0.08)', land: '#123a34', coast: 'rgba(127,224,195,0.35)', limb: 'rgba(31,201,156,0.55)', glow: 'rgba(31,201,156,0.14)', ring: '#04120f', labelBg: '#0b2b26', labelLine: 'rgba(127,224,195,0.4)' },
+  dark: { ocean0: '#124740', ocean1: '#0d332c', grat: 'rgba(127,224,195,0.08)', land: '#1a4f47', coast: 'rgba(127,224,195,0.4)', limb: 'rgba(31,201,156,0.55)', glow: 'rgba(31,201,156,0.14)', ring: '#0d332c', labelBg: '#0b2b26', labelLine: 'rgba(127,224,195,0.4)' },
 };
 
 export default function Globe({ points = [], hot, center, onZoomIn, onSelect, className = '', dark = false }) {

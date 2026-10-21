@@ -549,8 +549,8 @@
 /* ===== map v2: initial pins, tooltip, card popup, fit control ===== */
 .tiles-positron { filter: saturate(0.9); }
 .tiles-streets { filter: none; }
-.tiles-brand { filter: url(#jc-duotone-brand); }
-.tiles-night { filter: url(#jc-duotone-night); }
+.tiles-brand { filter: url(#jc-recolor-brand); }
+.tiles-night { filter: url(#jc-recolor-night); }
 .finder .leaflet-container, .dp-map .leaflet-container { background: #d4f0e5; } /* behind tiles still loading: the duotone's light end */
 .pin { width: 44px; height: 44px; margin: 0; }
 .pin > * { position: absolute; left: 50%; top: 50%; translate: -50% -50%; border-radius: 50%; }
@@ -621,12 +621,12 @@
 .dp .frow-feat { display: none; }
 
 /* ===== night map: near-black green canvas, mint labels, pins glow teal ===== */
-.map-night .leaflet-container, .map-night .globe { background: #04120f; }
-.map-night .pin-dot { background: var(--teal); color: var(--ink); border-color: rgba(4, 18, 15, 0.7); box-shadow: 0 0 0 1px rgba(31, 201, 156, 0.35), 0 0 16px rgba(31, 201, 156, 0.5); }
+.map-night .leaflet-container, .map-night .globe { background: #0d332c; }
+.map-night .pin-dot { background: var(--teal); color: var(--ink); border-color: rgba(13, 51, 44, 0.8); box-shadow: 0 0 0 1px rgba(31, 201, 156, 0.35), 0 0 16px rgba(31, 201, 156, 0.5); }
 .map-night .pin-halo { background: rgba(31, 201, 156, 0.16); }
 .map-night .pin.featured .pin-dot { background: var(--teal-light); color: var(--ink); box-shadow: 0 0 0 1px rgba(127, 224, 195, 0.45), 0 0 20px rgba(31, 201, 156, 0.6); }
 .map-night .pin.hot .pin-dot, .map-night .leaflet-marker-icon.pin:hover .pin-dot { background: #fff; color: var(--ink); box-shadow: 0 0 0 2px rgba(31, 201, 156, 0.6), 0 0 24px rgba(31, 201, 156, 0.85); }
-.map-night .leaflet-control-attribution { background: rgba(4, 18, 15, 0.55) !important; color: rgba(220, 245, 238, 0.65) !important; }
+.map-night .leaflet-control-attribution { background: rgba(13, 51, 44, 0.6) !important; color: rgba(220, 245, 238, 0.65) !important; }
 .map-night .leaflet-control-attribution a { color: var(--teal-light) !important; }
 .map-night .globe-zoom { border-color: rgba(127, 224, 195, 0.3); background: rgba(11, 43, 38, 0.92); color: var(--mint); }
 .map-night .globe-zoom:hover { background: var(--teal); color: var(--ink); }

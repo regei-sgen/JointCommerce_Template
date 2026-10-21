@@ -10,20 +10,31 @@ const TILES = {
   streets: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
   topo: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
   natgeo: 'https://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}',
-  darkRef: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}',
 };
 // Deepest zoom a service serves; deeper requests return a placeholder tile. Unlisted services serve past MAX_ZOOM + 1.
-const TILE_MAX_NATIVE = { natgeo: 16, night: 16 };
-// Duotone tile modes: the basemap runs through an SVG filter that drops its colour and maps luminance (0, .25,
-// .5, .75, 1) onto five palette stops. Pins, tooltips and popups live in other panes and keep their own colours.
-// - brand: Esri streets. Water (darker than land on those tiles) lands on teal, land on mint, labels on ink.
-// - night: Esri dark-gray canvas plus its label reference layer. Water near-black green, land ink, roads a
-//   faint lighter green, labels mint.
-const DUOTONES = {
-  brand: [[0x0b, 0x2b, 0x26], [0x0f, 0x7a, 0x60], [0x14, 0xb3, 0x8a], [0x7f, 0xe0, 0xc3], [0xdc, 0xf5, 0xee]],
-  night: [[0x04, 0x12, 0x0f], [0x0b, 0x2b, 0x26], [0x1b, 0x56, 0x4a], [0x8f, 0xdf, 0xc7], [0xe4, 0xf8, 0xf1]],
+const TILE_MAX_NATIVE = { natgeo: 16 };
+// Recoloured tile modes: the Esri street basemap runs through an SVG filter. A colour matrix reduces each
+// pixel to one value v (same in R, G and B), then per-channel tables map v onto palette colours at evenly
+// spaced stops. Pins, tooltips and popups live in other panes and keep their own colours.
+// - brand: v = luminance; five stops ink → teal-deep → teal → teal-light → mint. Water (darker than land on
+//   these tiles) lands on teal, land on mint, labels on ink.
+// - night: v = 1 − 0.6·luminance − (B − R), which separates the street tiles' classes by colour, not only
+//   by lightness: water (blue) ≈ .29, white roads ≈ .40, land (cream) ≈ .61, dark labels ≈ .86, orange and
+//   yellow highways ≈ .9–1. Twenty-one stops then paint water darkest, land ink-2, roads a lighter green,
+//   highways teal-bright and labels mint.
+const SATURATE_0 = '0.2126 0.7152 0.0722 0 0  0.2126 0.7152 0.0722 0 0  0.2126 0.7152 0.0722 0 0  0 0 0 1 0';
+const NIGHT_MATRIX = '0.872 -0.429 -1.043 0 1  0.872 -0.429 -1.043 0 1  0.872 -0.429 -1.043 0 1  0 0 0 1 0';
+const RECOLOR = {
+  brand: { matrix: SATURATE_0, stops: ['#0b2b26', '#0f7a60', '#14b38a', '#7fe0c3', '#dcf5ee'] },
+  night: { matrix: NIGHT_MATRIX, stops: [
+    '#0d332c', '#0d332c', '#0d332c', '#0d332c', '#0d332c', '#0d332c', // v ≤ .25: water
+    '#12403a', '#2a7c68', '#3a9b82', '#2b7363', // .30–.45: road casing, white roads
+    '#1f5a51', '#1b5249', '#1a4f47', '#1e5850', // .50–.65: land
+    '#30836e', '#63c2a7', '#abe7d3', '#e4f8f1', // .70–.85: label edges, labels
+    '#8fe3c9', '#5fd8b4', '#4fd4b0', // .90–1: highways
+  ] },
 };
-const duotoneTable = (name, i) => DUOTONES[name].map((c) => (c[i] / 255).toFixed(3)).join(' ');
+const tableFor = (mode, i) => RECOLOR[mode].stops.map((h) => (parseInt(h.slice(1 + i * 2, 3 + i * 2), 16) / 255).toFixed(3)).join(' ');
 const ATTR = '&copy; <a href="https://www.esri.com/">Esri</a>';
 const ATTR_CARTO = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>';
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -43,7 +54,7 @@ const keyOf = (pt) => pt.slug || `${pt.name}|${pt.city}`;
  * - `fit=true` fits the initial view to all points instead of using center/zoom.
  * - `tiles` is 'dark' (default, sepia-tinted), 'light' (Esri gray base), 'streets' (Esri streets), 'topo' (Esri
  *   topographic), 'natgeo' (Esri National Geographic: tan land, hillshade, served to zoom 16), 'brand' (Esri
- *   streets through the palette duotone), 'night' (Esri dark canvas + labels through the night duotone) or
+ *   streets recoloured to the light palette), 'night' (Esri streets recoloured to the dark palette) or
  *   'positron' (CARTO light; needs an API key on cartocdn).
  * - `onSelect(pt)` is called from the popup card's button (dom pins only).
  * - `fitControl=true` adds a button that refits the view to all points.
@@ -96,17 +107,12 @@ export default function LeafletMap({
       const tileOpts = { maxZoom: MAX_ZOOM + 1, detectRetina: true, updateWhenIdle: true, keepBuffer: 1 };
       if (tiles === 'positron') L.tileLayer(TILES.positron, { ...tileOpts, attribution: ATTR_CARTO, subdomains: 'abcd', className: 'tiles-positron' }).addTo(m);
       else {
-        const url = tiles === 'brand' ? TILES.streets : tiles === 'night' ? TILES.dark : TILES[tiles] || TILES.dark;
+        const url = RECOLOR[tiles] ? TILES.streets : TILES[tiles] || TILES.dark;
         const cls = tiles === 'light' ? 'tiles-light' : tiles === 'streets' ? 'tiles-streets' : tiles === 'brand' ? 'tiles-brand' : tiles === 'night' ? 'tiles-night' : tiles === 'topo' || tiles === 'natgeo' ? 'tiles-topo' : 'tiles-ink';
         const layer = L.tileLayer(url, { ...tileOpts, attribution: ATTR, className: cls });
         // Past the service's deepest zoom Leaflet scales those tiles up; under the retina offset the request is one deeper.
         if (TILE_MAX_NATIVE[tiles]) layer.options.maxNativeZoom = TILE_MAX_NATIVE[tiles] - layer.options.zoomOffset;
         layer.addTo(m);
-        if (tiles === 'night') { // the dark canvas carries no labels; its reference layer does
-          const ref = L.tileLayer(TILES.darkRef, { ...tileOpts, className: cls, zIndex: 2 });
-          ref.options.maxNativeZoom = TILE_MAX_NATIVE.night - ref.options.zoomOffset;
-          ref.addTo(m);
-        }
       }
       points.forEach((pt) => {
         if (pins === 'dom') {
@@ -212,14 +218,14 @@ export default function LeafletMap({
   return (
     <div className={`leaflet-wrap${tiles === 'night' ? ' map-night' : ''} ${className}`} role={ariaLabel ? 'region' : undefined} aria-label={ariaLabel}>
       <div ref={el} className="leaflet-host" />
-      {DUOTONES[tiles] && (
+      {RECOLOR[tiles] && (
         <svg width="0" height="0" aria-hidden="true" focusable="false" style={{ position: 'absolute' }}>
-          <filter id={`jc-duotone-${tiles}`} colorInterpolationFilters="sRGB">
-            <feColorMatrix type="saturate" values="0" />
+          <filter id={`jc-recolor-${tiles}`} colorInterpolationFilters="sRGB">
+            <feColorMatrix type="matrix" values={RECOLOR[tiles].matrix} />
             <feComponentTransfer>
-              <feFuncR type="table" tableValues={duotoneTable(tiles, 0)} />
-              <feFuncG type="table" tableValues={duotoneTable(tiles, 1)} />
-              <feFuncB type="table" tableValues={duotoneTable(tiles, 2)} />
+              <feFuncR type="table" tableValues={tableFor(tiles, 0)} />
+              <feFuncG type="table" tableValues={tableFor(tiles, 1)} />
+              <feFuncB type="table" tableValues={tableFor(tiles, 2)} />
             </feComponentTransfer>
           </filter>
         </svg>
