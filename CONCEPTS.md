@@ -9,7 +9,7 @@ and pointing the root routes at them, in its own commit.
 
 | Route | Component | What renders |
 | --- | --- | --- |
-| `/concept` | `src/concept/HomePage.jsx` | The dispensaries finder (viewport height), then four columns (live menus, brands, deals, strains) with a counting number in each head |
+| `/concept` | `src/concept/HomePage.jsx` | Two promo tiles (deals, featured dispensary), category tiles, featured-brand squares, then scroll rows: dispensaries near the place, deals today, strains. No map on home |
 | `/concept/:cat` | `src/concept/CategoryPage.jsx` | The finder for `dispensaries`, `deals`, `brands`, `products` or `strains`, filling the viewport |
 | `/concept/dispensaries/:slug` | `src/concept/DispensaryConceptPage.jsx` | One store inside the shell: header, today's deals, menu with category/type filters and sort, strains and brands on the menu, map, hours, services, contact |
 | `/concept/learn` | `src/concept/LearnPage.jsx` | Articles as text rows |
