@@ -234,6 +234,16 @@
 .learn-title .ic18 { color: var(--teal-deep); }
 .learn-head p { margin: 4px 0 0; font-size: 13px; }
 
+/* ===== globe (LeafletMap globeBelow) ===== */
+.leaflet-wrap { position: relative; width: 100%; height: 100%; }
+.leaflet-wrap > .leaflet-host { position: absolute; inset: 0; }
+.globe { position: absolute; inset: 0; z-index: 650; background: #f2f4f3; animation: globeIn 0.35s var(--ease-soft) both; }
+.globe canvas { display: block; touch-action: none; }
+.globe-zoom { position: absolute; right: 14px; bottom: 14px; height: 34px; padding: 0 14px; border: 1px solid var(--cx-line); border-radius: 999px; background: rgba(255, 255, 255, 0.95); color: var(--ink); font: inherit; font-size: 12.5px; font-weight: 700; cursor: pointer; box-shadow: var(--cx-float); }
+.globe-zoom:hover { background: var(--ink); color: #fff; }
+@keyframes globeIn { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .globe { animation: none; } }
+
 /* ===== loading ===== */
 .cx-loading { position: relative; height: 3px; overflow: hidden; }
 .cx-loading-bar { position: absolute; left: -40%; top: 0; width: 40%; height: 100%; background: var(--ink); animation: cxLoad 1.1s ease-in-out infinite; }

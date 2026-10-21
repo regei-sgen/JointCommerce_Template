@@ -1,6 +1,7 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import Globe from './Globe.jsx';
 
 const TILES = {
   dark: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
@@ -29,6 +30,8 @@ const keyOf = (pt) => pt.slug || `${pt.name}|${pt.city}`;
  *   CSS) or 'positron' (CARTO light; needs an API key on cartocdn).
  * - `onSelect(pt)` is called from the popup card's button (dom pins only).
  * - `fitControl=true` adds a button that refits the view to all points.
+ * - `globeBelow=N`: while the map zoom is below N, an orthographic globe (Globe.jsx) covers the map with
+ *   the same pins; zooming in on the globe sets the map view at zoom N on the globe's centre.
  * - `pins` is 'svg' (default: circle markers in the SVG renderer, which Leaflet scales during zoom
  *   animation) or 'dom' (div-icon markers, repositioned during zoom; styled by `.pin` rules).
  * - `eager` creates the map on mount; otherwise it is created when the host scrolls within 400px
@@ -36,8 +39,10 @@ const keyOf = (pt) => pt.slug || `${pt.name}|${pt.city}`;
  */
 export default function LeafletMap({
   className = '', center, zoom = 9, focus, points = [], interactive = true, focusZoom = 11, eager = false,
-  hot, fit = false, tiles = 'dark', wheel = false, flyDuration = 1.6, ariaLabel, pins = 'svg', focusMode = 'fly', onSelect, fitControl = false,
+  hot, fit = false, tiles = 'dark', wheel = false, flyDuration = 1.6, ariaLabel, pins = 'svg', focusMode = 'fly', onSelect, fitControl = false, globeBelow = 0,
 }) {
+  const [zoomLevel, setZoomLevel] = useState(null);
+  const [globeCenter, setGlobeCenter] = useState(null);
   const onSelectRef = useRef(onSelect);
   onSelectRef.current = onSelect;
   const el = useRef(null);
@@ -107,6 +112,7 @@ export default function LeafletMap({
         markers.current.set(keyOf(pt), { marker, halo });
       });
       map.current = m;
+      m.on('zoomend moveend', () => { setZoomLevel(m.getZoom()); const c = m.getCenter(); setGlobeCenter([c.lat, c.lng]); });
       const fitAll = (animate) => { if (points.length) m.fitBounds(L.latLngBounds(points.map((p) => [p.lat, p.lng])), { padding: [48, 48], maxZoom: 12, animate }); };
       if (fit) fitAll(false);
       if (fitControl && interactive && points.length) {
@@ -115,6 +121,7 @@ export default function LeafletMap({
       }
       if (pendingFocus.current) m.setView([pendingFocus.current.lat, pendingFocus.current.lng], focusZoom, { animate: false });
       applyHot(hot);
+      { const c = m.getCenter(); setZoomLevel(m.getZoom()); setGlobeCenter([c.lat, c.lng]); }
       ro = new ResizeObserver(() => m.invalidateSize());
       ro.observe(el.current);
     };
@@ -167,5 +174,12 @@ export default function LeafletMap({
   };
   useEffect(() => { if (map.current) applyHot(hot); }, [Array.isArray(hot) ? hot.join('|') : hot]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  return <div ref={el} className={`leaflet-host ${className}`} role={ariaLabel ? 'region' : undefined} aria-label={ariaLabel} />;
+  const showGlobe = globeBelow > 0 && zoomLevel !== null && zoomLevel < globeBelow;
+  const zoomInFromGlobe = ([lat, lng]) => { if (map.current) map.current.setView([lat, lng], globeBelow, { animate: false }); };
+  return (
+    <div className={`leaflet-wrap ${className}`} role={ariaLabel ? 'region' : undefined} aria-label={ariaLabel}>
+      <div ref={el} className="leaflet-host" />
+      {showGlobe && <Globe points={points} hot={hot} center={globeCenter} onZoomIn={zoomInFromGlobe} onSelect={onSelect} />}
+    </div>
+  );
 }
