@@ -9,9 +9,20 @@ const RADII = ['5 mi', '10 mi', '25 mi', '50 mi'];
 
 const stop = (e) => e.preventDefault();
 
+// `onSet` receives the typed string, or `{ name, lat, lng }` from the device's geolocation.
 export function LocationModal({ open, onClose, onSet }) {
   const [q, setQ] = useState('');
   const [radius, setRadius] = useState('10 mi');
+  const [locating, setLocating] = useState(false);
+  const locate = () => {
+    if (!navigator.geolocation) return;
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => { setLocating(false); onSet?.({ name: 'Current location', lat: pos.coords.latitude, lng: pos.coords.longitude }); onClose(); },
+      () => setLocating(false),
+      { timeout: 8000 },
+    );
+  };
   return (
     <Modal open={open} onClose={onClose} eyebrow={<><Pin />Location</>} title="Where are you shopping?">
       <p className="modal-sub">Set a location to see live menus, deals and pickup options near you.</p>
@@ -21,7 +32,7 @@ export function LocationModal({ open, onClose, onSet }) {
           <Search className="ic18" />
           <input id="loc-q" type="text" placeholder="City, zip code, or address" value={q} onChange={(e) => setQ(e.target.value)} autoComplete="off" />
         </div>
-        <button type="button" className="btn ghost modal-locate"><Navigate />Use my current location</button>
+        <button type="button" className="btn ghost modal-locate" onClick={locate} disabled={locating}><Navigate />{locating ? 'Locating…' : 'Use my current location'}</button>
         <div className="modal-label">Popular near you</div>
         <div className="modal-chips">
           {CITIES.map((c) => (

@@ -13,7 +13,8 @@ export function useFinderCat() {
 
 // The search tool: category tabs, one text field with grouped typeahead, location, submit.
 // Submitting navigates to /concept/<cat>?q=…; picking a suggestion navigates to that item.
-export default function WhereToBuy({ loc, onLocation }) {
+export default function WhereToBuy({ place, onLocation }) {
+  const loc = place.name;
   const navigate = useNavigate();
   const location = useLocation();
   const cat = useFinderCat();
@@ -45,7 +46,7 @@ export default function WhereToBuy({ loc, onLocation }) {
 
   const flat = useMemo(() => {
     if (text.trim().length < 2) return [];
-    const res = search(text, 'all');
+    const res = search(text, 'all', { origin: place });
     const order = [cat, ...CAT_KEYS.filter((k) => k !== cat)];
     return order.flatMap((k) => res[k].slice(0, k === cat ? 4 : 2).map((item) => ({ k, item })));
   }, [text, cat]);

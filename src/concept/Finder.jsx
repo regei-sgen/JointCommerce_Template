@@ -8,7 +8,8 @@ import { ResultRow, DispensaryRow, ItemBadge, itemSubtitle } from './cards.jsx';
 
 // List + map for one category. State lives in the URL: q (text), f (filter keys, repeatable),
 // sort, sel (selected item slug → the panel lists the dispensaries that carry it).
-export default function Finder({ cat, loc, home = false }) {
+export default function Finder({ cat, place, home = false }) {
+  const loc = place.name;
   const [params, setParams] = useSearchParams();
   const q = params.get('q') || '';
   const sel = params.get('sel');
@@ -26,12 +27,12 @@ export default function Finder({ cat, loc, home = false }) {
   };
   const toggleFilter = (k) => set({ f: filters.includes(k) ? filters.filter((x) => x !== k) : [...filters, k] });
 
-  const list = useMemo(() => search(q, cat, { filters, sort })[cat], [q, cat, filters.join('|'), sort]); // eslint-disable-line react-hooks/exhaustive-deps
-  const selected = sel ? find(cat, sel) : null;
+  const list = useMemo(() => search(q, cat, { filters, sort, origin: place })[cat], [q, cat, filters.join('|'), sort, place]); // eslint-disable-line react-hooks/exhaustive-deps
+  const selected = sel ? find(cat, sel, place) : null;
   // An unknown `sel` is dropped from the URL instead of riding along on every later change.
   useEffect(() => { if (sel && !selected) set({ sel: null }); }, [sel, selected]); // eslint-disable-line react-hooks/exhaustive-deps
-  const storesOf = useMemo(() => new Map(list.map((it) => [it.slug, stockedAt(cat, it)])), [list, cat]);
-  const stores = selected ? stockedAt(cat, selected) : null;
+  const storesOf = useMemo(() => new Map(list.map((it) => [it.slug, stockedAt(cat, it, place)])), [list, cat, place]);
+  const stores = selected ? stockedAt(cat, selected, place) : null;
 
   const points = useMemo(() => {
     if (stores) return stores;

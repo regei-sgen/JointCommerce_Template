@@ -9,15 +9,18 @@ and pointing the root routes at them, in its own commit.
 
 | Route | Component | What renders |
 | --- | --- | --- |
-| `/concept` | `src/concept/HomePage.jsx` | Intro line + live counts, the dispensaries finder (640px), four columns (live menus, brands, deals, strains) |
+| `/concept` | `src/concept/HomePage.jsx` | The dispensaries finder (viewport height), then four columns (live menus, brands, deals, strains) with a counting number in each head |
 | `/concept/:cat` | `src/concept/CategoryPage.jsx` | The finder for `dispensaries`, `deals`, `brands`, `products` or `strains`, filling the viewport |
+| `/concept/dispensaries/:slug` | `src/concept/DispensaryConceptPage.jsx` | One store inside the shell: header, today's deals, menu with category/type filters and sort, strains and brands on the menu, map, hours, services, contact |
+| `/concept/learn` | `src/concept/LearnPage.jsx` | Articles as text rows |
 
 Shared pieces:
 
 - `Shell.jsx` – fixed left sidebar (Home, Dispensaries, Deliveries, Deals, Brands, Products, Strains, Learn), sticky top bar (search tool, location, log in, sign up), bottom tab bar under 900px. Location state lives here and reaches pages through the router outlet context.
 - `WhereToBuy.jsx` – one search form: category tabs, text field with grouped typeahead across every category, location button, submit. Submit → `/concept/<cat>?q=…`; a suggestion → that item.
 - `Finder.jsx` – list panel + Leaflet map. URL params: `q`, `f` (filter key, repeatable), `sort`, `sel` (selected item slug; the panel then lists the dispensaries that carry it). Hovering a row highlights its pins.
-- `search.js` – the index over `listingData.js`: `search(q, cat, {filters, sort})`, `stockedAt(cat, item)`, `itemLink(cat, item)`. Featured slugs sort first.
+- `search.js` – the index over `listingData.js`: `search(q, cat, {filters, sort, origin})`, `stockedAt(cat, item, origin)`, `menuFor(slug)`, `itemLink(cat, item)`. Featured slugs sort first. `origin` ({lat,lng}) recomputes every dispensary's `miles`.
+- `geo.js` – known places for the location field (`resolvePlace`), great-circle `milesBetween`, `DEFAULT_PLACE`. The location modal also hands over device geolocation coordinates.
 - `cards.jsx` – photo-free rows per category (`frow`), `ItemBadge`, `itemSubtitle`.
 - `concept.css` – all shell/finder styles; loaded only with the concept chunk.
 

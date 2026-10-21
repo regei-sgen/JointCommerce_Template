@@ -3,6 +3,7 @@
 // on the same map.
 import { allDispensaries, allBrands, allStrains, allDeals } from '../listingData.js';
 import { dispensaryDetails } from '../data.js';
+import { milesBetween } from './geo.js';
 
 export const CATS = [
   { key: 'dispensaries', label: 'Dispensaries', one: 'dispensary', placeholder: 'Search dispensaries by name or city' },
@@ -23,6 +24,9 @@ const FEATURED = new Set(['natures-remedy-tyngsboro', 'ascend-boston', 'hashery'
 export const isFeatured = (item) => FEATURED.has(item.slug);
 
 export const dispensaries = allDispensaries.map((d) => ({ ...d, state: stateOf(d.city), featured: FEATURED.has(d.slug) }));
+
+// A copy of `d` with `miles` measured from `origin` ({lat,lng}); without coordinates the sample value stands.
+export const located = (d, origin) => (origin && typeof origin.lat === 'number' ? { ...d, miles: Math.round(milesBetween(origin, d) * 10) / 10 } : d);
 const bySlug = Object.fromEntries(dispensaries.map((d) => [d.slug, d]));
 const byName = (name) => dispensaries.find((d) => d.name === name);
 
@@ -38,7 +42,7 @@ export const products = [
 ];
 
 const SOURCE = { dispensaries, deals, brands, products, strains };
-export const find = (cat, slug) => (SOURCE[cat] || []).find((i) => i.slug === slug) || null;
+export const find = (cat, slug, origin) => { const it = (SOURCE[cat] || []).find((i) => i.slug === slug) || null; return it && cat === 'dispensaries' ? located(it, origin) : it; };
 
 const norm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
 const typeWord = { hyb: 'hybrid', sat: 'sativa', ind: 'indica' };
@@ -87,7 +91,7 @@ function score(fields, terms) {
   return total;
 }
 
-export function search(q, cat = 'all', { filters = [], sort } = {}) {
+export function search(q, cat = 'all', { filters = [], sort, origin } = {}) {
   const terms = norm(q).split(/\s+/).filter(Boolean);
   const keys = cat === 'all' ? CAT_KEYS : [cat];
   const out = {};
@@ -95,7 +99,7 @@ export function search(q, cat = 'all', { filters = [], sort } = {}) {
     const sortFn = (sort && Object.hasOwn(SORTS[k], sort) ? SORTS[k][sort] : SORTS[k][defaultSort(k)])[1];
     const active = FILTERS[k].filter(([key]) => filters.includes(key));
     const passes = (item) => !active.length || (FILTER_MODE[k] === 'and' ? active.every(([, , p]) => p(item)) : active.some(([, , p]) => p(item)));
-    const ranked = SOURCE[k]
+    const ranked = (k === 'dispensaries' ? SOURCE[k].map((d) => located(d, origin)) : SOURCE[k])
       .filter(passes)
       .map((item) => ({ item, s: terms.length ? score(FIELDS[k](item), terms) : 1 }))
       .filter((r) => r.s > 0)
@@ -119,17 +123,30 @@ function sample(seed, n) {
 }
 
 // Dispensaries that carry `item`, nearest first.
-export function stockedAt(cat, item) {
+export function stockedAt(cat, item, origin) {
   let list;
   if (cat === 'dispensaries') list = [item];
   else if (cat === 'deals' || cat === 'products') list = item.storeSlug ? [bySlug[item.storeSlug]] : [];
   else if (cat === 'brands') list = dispensaries.filter((d) => item.states.includes(d.state));
   else list = sample(item.name, Math.min(item.menus, 6)); // strains
-  return [...list].filter(Boolean).sort((a, b) => a.miles - b.miles);
+  return list.filter(Boolean).map((d) => located(d, origin)).sort((a, b) => a.miles - b.miles);
 }
+
+// Menu of one store: its own products and deals, padded with the sample highlights when short.
+export function menuFor(slug) {
+  const own = products.filter((p) => p.storeSlug === slug);
+  const seen = new Set(own.map((p) => p.name));
+  const pad = dispensaryDetails.hashery.menuHighlights
+    .filter((m) => !seen.has(m.name))
+    .map((m, i) => ({ name: m.name, meta: m.meta, price: m.price, type: m.type, thc: m.thc, store: bySlug[slug]?.name || slug, storeSlug: slug, slug: `p-${slug}-${slugify(m.name)}-${i}`, category: { 'Pre-roll': 'Pre-rolls', Vape: 'Vapes', Edible: 'Edibles' }[m.meta.split(' · ')[0]] || m.meta.split(' · ')[0] }));
+  return own.length >= 4 ? own : [...own, ...pad];
+}
+export const dealsAt = (slug) => deals.filter((d) => d.storeSlug === slug);
+export const strainsAt = (slug) => strains.filter((s) => stockedAt('strains', s).some((d) => d.slug === slug));
+export const brandsAt = (slug) => { const d = bySlug[slug]; return d ? brands.filter((b) => b.states.includes(d.state)) : []; };
 
 // Where a click on a result goes: dispensaries open their page; everything else opens inside the finder.
 export function itemLink(cat, item) {
-  if (cat === 'dispensaries') return `/dispensaries/${item.slug}`;
+  if (cat === 'dispensaries') return `/concept/dispensaries/${item.slug}`;
   return `/concept/${cat}?sel=${encodeURIComponent(item.slug)}`;
 }

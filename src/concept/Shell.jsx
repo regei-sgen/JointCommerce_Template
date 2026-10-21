@@ -4,17 +4,18 @@ import Wordmark from '../components/Wordmark.jsx';
 import { Home, Store, Truck, Tag, Star, Grid, Leaf, Book, User } from '../icons.jsx';
 import { LocationModal, LoginModal, SignupModal } from '../components/AuthModals.jsx';
 import WhereToBuy from './WhereToBuy.jsx';
+import { DEFAULT_PLACE, resolvePlace } from './geo.js';
 import './concept.css';
 
 const NAV = [
   { to: '/concept', label: 'Home', icon: Home, active: (l) => l.pathname === '/concept' || l.pathname === '/concept/' },
-  { to: '/concept/dispensaries', label: 'Dispensaries', icon: Store, active: (l) => l.pathname === '/concept/dispensaries' && !/\bf=delivery\b/.test(l.search) },
+  { to: '/concept/dispensaries', label: 'Dispensaries', icon: Store, active: (l) => l.pathname.startsWith('/concept/dispensaries') && !/\bf=delivery\b/.test(l.search) },
   { to: '/concept/dispensaries?f=delivery', label: 'Deliveries', icon: Truck, active: (l) => l.pathname === '/concept/dispensaries' && /\bf=delivery\b/.test(l.search) },
   { to: '/concept/deals', label: 'Deals', icon: Tag, active: (l) => l.pathname === '/concept/deals' },
   { to: '/concept/brands', label: 'Brands', icon: Star, active: (l) => l.pathname === '/concept/brands' },
   { to: '/concept/products', label: 'Products', icon: Grid, active: (l) => l.pathname === '/concept/products' },
   { to: '/concept/strains', label: 'Strains', icon: Leaf, active: (l) => l.pathname === '/concept/strains' },
-  { to: '/blog', label: 'Learn', icon: Book, active: () => false },
+  { to: '/concept/learn', label: 'Learn', icon: Book, active: (l) => l.pathname === '/concept/learn' },
 ];
 const TABBAR = ['Home', 'Dispensaries', 'Deals', 'Brands', 'Strains'];
 
@@ -30,15 +31,24 @@ function Item({ item, className, location }) {
 }
 
 // Layout: fixed left sidebar (categories), sticky top bar (search tool, location, account), content.
+// `place` ({ name, lat, lng }) is the origin every distance and heading uses.
 export default function Shell() {
   const location = useLocation();
-  const [loc, setLoc] = useState('Boston, MA');
+  const [place, setPlace] = useState(DEFAULT_PLACE);
   const [modal, setModal] = useState(null); // 'location' | 'login' | 'signup'
   const hide = () => setModal(null);
   useEffect(() => {
     document.documentElement.classList.add('cx-on');
     return () => document.documentElement.classList.remove('cx-on');
   }, []);
+
+  // A typed place resolves against the known list; an unknown string keeps the previous
+  // coordinates and only changes the label. Geolocation hands over coordinates directly.
+  const applyPlace = (v) => {
+    if (v && typeof v === 'object') { setPlace({ name: v.name, lat: v.lat, lng: v.lng }); return; }
+    const hit = resolvePlace(v);
+    setPlace((prev) => (hit ? hit : { ...prev, name: String(v) }));
+  };
 
   return (
     <div className="cx">
@@ -51,11 +61,6 @@ export default function Shell() {
           {NAV.map((item) => <Item key={item.label} item={item} location={location} className="cx-link" />)}
         </nav>
         <div className="cx-sb-foot">
-          <div className="cx-claim">
-            <strong>Own a dispensary or brand?</strong>
-            <span>Claim your listing to manage your menu and hours.</span>
-            <a href="#" className="btn ghost sm">Claim listing</a>
-          </div>
           <span>© 2026 JointCommerce</span>
         </div>
       </aside>
@@ -63,23 +68,22 @@ export default function Shell() {
       <div className="cx-main">
         <header className="cx-top">
           <Link to="/concept" className="cx-top-brand" aria-label="JointCommerce home"><Wordmark height={18} /></Link>
-          <WhereToBuy loc={loc} onLocation={() => setModal('location')} />
+          <WhereToBuy place={place} onLocation={() => setModal('location')} />
           <div className="cx-acct">
             <button type="button" className="btn plain sm" onClick={() => setModal('login')}><User className="ic14" /><span className="nav-login-text">Log in</span></button>
             <button type="button" className="btn ink sm" onClick={() => setModal('signup')}>Sign up</button>
           </div>
         </header>
-        <Outlet context={{ loc, setLoc, openLocation: () => setModal('location') }} />
+        <Outlet context={{ place, setPlace: applyPlace, openLocation: () => setModal('location') }} />
       </div>
 
       <nav className="cx-tabbar" aria-label="Browse">
         {NAV.filter((n) => TABBAR.includes(n.label)).map((item) => <Item key={item.label} item={item} location={location} className="cx-tab" />)}
       </nav>
 
-      <LocationModal open={modal === 'location'} onClose={hide} onSet={setLoc} />
+      <LocationModal open={modal === 'location'} onClose={hide} onSet={applyPlace} />
       <LoginModal open={modal === 'login'} onClose={hide} onSwitch={() => setModal('signup')} />
       <SignupModal open={modal === 'signup'} onClose={hide} onSwitch={() => setModal('login')} />
     </div>
   );
 }
-

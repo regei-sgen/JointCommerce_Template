@@ -16,6 +16,8 @@ const ArticlesPage = lazy(() => import('./pages/ArticlesPage.jsx'));
 const ConceptShell = lazy(() => import('./concept/Shell.jsx'));
 const ConceptHome = lazy(() => import('./concept/HomePage.jsx'));
 const ConceptCategory = lazy(() => import('./concept/CategoryPage.jsx'));
+const ConceptDispensary = lazy(() => import('./concept/DispensaryConceptPage.jsx'));
+const ConceptLearn = lazy(() => import('./concept/LearnPage.jsx'));
 import { useReveal } from './hooks/useReveal.js';
 
 function Home() {
@@ -77,6 +79,8 @@ export default function App() {
           <Route path="/blog" element={<ArticlesPage />} />
           <Route path="/concept" element={<ConceptShell />}>
             <Route index element={<ConceptHome />} />
+            <Route path="learn" element={<ConceptLearn />} />
+            <Route path="dispensaries/:slug" element={<ConceptDispensary />} />
             <Route path=":cat" element={<ConceptCategory />} />
           </Route>
           <Route path="*" element={<Home />} />

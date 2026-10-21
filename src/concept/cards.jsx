@@ -5,6 +5,7 @@ import { Pin, Star, Store, ShieldCheck, Truck, ChevronRight, Clock, Sparkle, Tag
 import { LiveDot, TypeChip } from '../components/ui.jsx';
 import { typeLabel } from '../data.js';
 import { itemLink } from './search.js';
+import { fmtMiles } from './geo.js';
 
 const pct = (n) => `${Math.round(n)}%`;
 
@@ -35,7 +36,7 @@ export function DispensaryRow({ d, i, hot, onHover, to }) {
       to={to || itemLink('dispensaries', d)} id={d.slug} hot={hot} onHover={onHover} i={i} featured={d.featured}
       badge={<Badge tone="ink">{d.code}</Badge>}
       title={<>{d.name}{d.verified && <><ShieldCheck className="ic14 frow-verified" /><span className="srl">Verified</span></>}</>}
-      meta={<><Pin className="ic14" />{d.city} · {d.miles} mi<span className="dot" /><span className="rating"><Star className="ic14" />{d.rating.toFixed(1)}</span><span className="muted"> ({d.reviews})</span></>}
+      meta={<><Pin className="ic14" />{d.city} · {fmtMiles(d.miles)} mi<span className="dot" /><span className="rating"><Star className="ic14" />{d.rating.toFixed(1)}</span><span className="muted"> ({d.reviews})</span></>}
       foot={<><LiveDot>{d.status}</LiveDot>{d.delivery && <span className="chip chip-sm"><Truck className="ic14" />Delivery</span>}<span className="chip chip-sm">{d.products} products</span></>}
     />
   );
@@ -108,7 +109,7 @@ export function ItemBadge({ cat, item, className }) {
   return <Badge tone={item.type || 'mint'} className={className}>{item.category[0]}</Badge>;
 }
 export function itemSubtitle(cat, item) {
-  if (cat === 'dispensaries') return `${item.city} · ${item.miles} mi · ${item.status}`;
+  if (cat === 'dispensaries') return `${item.city} · ${fmtMiles(item.miles)} mi · ${item.status}`;
   if (cat === 'brands') return `${item.category} · ${item.menus} menus · ${item.states.join(', ')}`;
   if (cat === 'strains') return `${typeLabel[item.type]} · ${item.lineage} · THC ${item.thc}%`;
   return `${item.meta} · ${item.store}`;
