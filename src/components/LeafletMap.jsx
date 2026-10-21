@@ -8,6 +8,7 @@ const TILES = {
   light: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',
   positron: 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
   streets: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
+  topo: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}',
 };
 const ATTR = '&copy; <a href="https://www.esri.com/">Esri</a>';
 const ATTR_CARTO = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>';
@@ -26,8 +27,8 @@ const keyOf = (pt) => pt.slug || `${pt.name}|${pt.city}`;
  * - `hot` is a point key (slug, or name|city) or an array of keys: those markers are enlarged and
  *   brought to the front while the rest dim.
  * - `fit=true` fits the initial view to all points instead of using center/zoom.
- * - `tiles` is 'dark' (default, sepia-tinted), 'light' (Esri gray base), 'streets' (Esri streets in their own
- *   colours) or 'positron' (CARTO light; needs an API key on cartocdn).
+ * - `tiles` is 'dark' (default, sepia-tinted), 'light' (Esri gray base), 'streets' (Esri streets), 'topo' (Esri
+ *   topographic: tan land, hillshade, blue water) or 'positron' (CARTO light; needs an API key on cartocdn).
  * - `onSelect(pt)` is called from the popup card's button (dom pins only).
  * - `fitControl=true` adds a button that refits the view to all points.
  * - `globeBelow=N`: while the map zoom is below N, an orthographic globe (Globe.jsx) covers the map with
@@ -75,7 +76,7 @@ export default function LeafletMap({
       });
       m.attributionControl.setPrefix(false); // corner label carries the tile credit only, no "Leaflet" prefix
       if (tiles === 'positron') L.tileLayer(TILES.positron, { attribution: ATTR_CARTO, subdomains: 'abcd', maxZoom: MAX_ZOOM, className: 'tiles-positron', updateWhenIdle: true, keepBuffer: 1 }).addTo(m);
-      else L.tileLayer(TILES[tiles] || TILES.dark, { attribution: ATTR, maxZoom: MAX_ZOOM, className: tiles === 'light' ? 'tiles-light' : tiles === 'streets' ? 'tiles-streets' : 'tiles-ink', updateWhenIdle: true, keepBuffer: 1 }).addTo(m);
+      else L.tileLayer(TILES[tiles] || TILES.dark, { attribution: ATTR, maxZoom: MAX_ZOOM, className: tiles === 'light' ? 'tiles-light' : tiles === 'streets' ? 'tiles-streets' : tiles === 'topo' ? 'tiles-topo' : 'tiles-ink', updateWhenIdle: true, keepBuffer: 1 }).addTo(m);
       points.forEach((pt) => {
         if (pins === 'dom') {
           const code = esc((pt.code || String(pt.name || '?').slice(0, 2)).slice(0, 3).toUpperCase());
