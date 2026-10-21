@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Link, Navigate, useOutletContext, useParams } from 'react-router-dom';
 import { typeLabel } from '../data.js';
 import { Pin, Phone, Globe, Star, Clock, Store, ShieldCheck, Truck, Navigate as NavIcon, ChevronLeft, ChevronDown, Tag, Leaf, Info, CreditCard, Banknote, Check } from '../icons.jsx';
@@ -31,6 +31,11 @@ function Store_({ d, details, slug }) {
   const [sort, setSort] = useState('price');
   const [week, setWeek] = useState(false);
   const [more, setMore] = useState(false);
+  // Read more shows only when the clamped About block overflows. `clamped` starts null (unknown): the block
+  // renders clamped, is measured, and only a measured false lifts the clamp. Kept while open.
+  const aboutRef = useRef(null);
+  const [clamped, setClamped] = useState(null);
+  useLayoutEffect(() => { const el = aboutRef.current; if (!more && el) setClamped(el.scrollHeight > el.clientHeight + 2); }, [details.about, more]);
   const menu = useMemo(() => menuFor(slug), [slug]);
   const embed = useMemo(() => embedFor(slug), [slug]);
   const cats = CATS.filter((c) => menu.some((m) => m.category === c));
@@ -133,8 +138,8 @@ function Store_({ d, details, slug }) {
 
           {details.about.length > 0 && <section className="dp-sec" data-reveal style={{ '--i': 4 }}>
             <h2 className="dp-h2"><Info className="ic18" />About {d.name}</h2>
-            <div className={`dabout${more ? ' open' : ''}`}>{details.about.map((p) => <p key={p.slice(0, 24)}>{p}</p>)}</div>
-            {details.about.length > 1 && <button type="button" className="link link-sm dmore" onClick={() => setMore((v) => !v)}>{more ? 'Show less' : 'Read more'}<ChevronDown className={`ic14 ic-after${more ? ' flip' : ''}`} /></button>}
+            <div ref={aboutRef} className={`dabout${more ? ' open' : ''}${clamped === false && !more ? ' flat' : ''}`}>{details.about.map((p) => <p key={p.slice(0, 24)}>{p}</p>)}</div>
+            {(clamped || more) && <button type="button" className="link link-sm dmore" onClick={() => setMore((v) => !v)}>{more ? 'Show less' : 'Read more'}<ChevronDown className={`ic14 ic-after${more ? ' flip' : ''}`} /></button>}
           </section>}
         </main>
 
@@ -205,7 +210,7 @@ function MenuEmbed({ embed, store }) {
       ) : embed.js ? (
         <div className="menu-embed-frame"><div id="dutchie--embed__container" ref={host} /></div>
       ) : (
-        <div className="menu-embed-frame"><iframe src={embed.src} title={`${store.name} menu on ${embed.p}`} loading="lazy" allow="geolocation; clipboard-write" referrerPolicy="strict-origin-when-cross-origin" /></div>
+        <div className="menu-embed-frame menu-embed-iframe"><iframe src={embed.src} title={`${store.name} menu on ${embed.p}`} loading="lazy" allow="geolocation; clipboard-write" referrerPolicy="strict-origin-when-cross-origin" /></div>
       )}
     </div>
   );

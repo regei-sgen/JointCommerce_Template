@@ -19,6 +19,19 @@ const initials = (name) => { const w = String(name || '').replace(/[^A-Za-z0-9 ]
 const slugify = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 const CAT = (c) => { const n = String(c || '').toLowerCase(); if (/pre[- ]?roll/.test(n)) return 'Pre-rolls'; if (/vape|cart/.test(n)) return 'Vapes'; if (/edible|gumm|chocolate|drink|beverage/.test(n)) return 'Edibles'; if (/concentrate|resin|rosin|wax|shatter|dab/.test(n)) return 'Concentrates'; if (/flower|bud/.test(n)) return 'Flower'; if (/tincture/.test(n)) return 'Tinctures'; if (/topical/.test(n)) return 'Topicals'; return c ? String(c) : 'Other'; };
 const TYPE = (t) => { const n = String(t || '').toLowerCase(); if (n.startsWith('sativa')) return 'sat'; if (n.startsWith('indica')) return 'ind'; if (n === 'cbd') return 'hyb'; return 'hyb'; };
+// Description text → paragraphs. HTML (some API descriptions are markup) is split on block boundaries, tags
+// are stripped and common entities decoded; plain text is split on blank lines.
+const ENT = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ', rsquo: '\u2019', lsquo: '\u2018', rdquo: '\u201d', ldquo: '\u201c', ndash: '\u2013', mdash: '\u2014', hellip: '\u2026' };
+const decode = (s) => s.replace(/&(#x?[0-9a-f]+|[a-z]+);/gi, (m, e) => (e[0] === '#' ? String.fromCodePoint(parseInt(e[1] === 'x' || e[1] === 'X' ? e.slice(2) : e.slice(1), e[1] === 'x' || e[1] === 'X' ? 16 : 10)) : ENT[e.toLowerCase()] ?? m));
+const paragraphs = (text, max = 6) => {
+  const t = String(text || '');
+  const parts = /<[a-z][^>]*>/i.test(t)
+    ? t.replace(/<\/(p|div|li|h[1-6]|blockquote|tr)>|<br\s*\/?>/gi, '\n\n').replace(/<[^>]+>/g, '').split(/\n\s*\n/)
+    : t.split(/\r?\n\s*\r?\n/);
+  return parts.map((p) => decode(p).replace(/\s+/g, ' ').trim()).filter(Boolean).slice(0, max);
+};
+const oneLine = (text, n) => paragraphs(text, 50).join(' ').slice(0, n);
+
 const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 const cap = (s) => s[0].toUpperCase() + s.slice(1);
 const hhmm = (s) => { if (!s) return null; const [h, m] = s.split(':').map(Number); const ap = h >= 12 ? 'PM' : 'AM'; const hh = h % 12 || 12; return `${hh}:${String(m).padStart(2, '0')} ${ap}`; };
@@ -187,10 +200,10 @@ const brands = rawB.filter((b) => b.slug && b.name).map((b, i) => {
   if (own && !states.includes(own)) states.push(own);
   const type = b.brand_type_display || 'Other';
   const social = Object.fromEntries(Object.entries(det.social || {}).filter(([, v]) => v));
-  const about = String(det.description || b.description || '').split(/\r?\n\s*\r?\n/).map((p) => p.trim()).filter(Boolean).slice(0, 6);
+  const about = paragraphs(det.description || b.description);
   const parent = det.parent_brand && det.parent_brand.slug !== b.slug ? { name: det.parent_brand.name, slug: det.parent_brand.slug } : null;
   const children = (det.child_brands || []).filter((c) => c && c.slug).map((c) => ({ name: c.name, slug: c.slug }));
-  return clean({ slug: b.slug, name: b.name, initial: initials(b.name), type, category: type, menus: stores.length, products: num(b.product_count) || (links[b.slug] ? links[b.slug].products.length : 0), states, blurb: (b.description || '').replace(/\s+/g, ' ').slice(0, 140), about, verified: !!b.is_verified, claimed: !!b.is_claimed, logo: b.logo || '', website: b.website || '', social: Object.keys(social).length ? social : null, parent, children: children.length ? children : null, address: b.address || '', city: b.city || '', stateName: b.state || '', country: b.country || '', rating: num(b.rating) || 0, reviews: num(b.review_count) || 0, featured: !!(b.is_verified || b.is_claimed), pic: i % 4, tags: [] });
+  return clean({ slug: b.slug, name: b.name, initial: initials(b.name), type, category: type, menus: stores.length, products: num(b.product_count) || (links[b.slug] ? links[b.slug].products.length : 0), states, blurb: oneLine(b.description, 140), about, verified: !!b.is_verified, claimed: !!b.is_claimed, logo: b.logo || '', website: b.website || '', social: Object.keys(social).length ? social : null, parent, children: children.length ? children : null, address: b.address || '', city: b.city || '', stateName: b.state || '', country: b.country || '', rating: num(b.rating) || 0, reviews: num(b.review_count) || 0, featured: !!(b.is_verified || b.is_claimed), pic: i % 4, tags: [] });
 });
 
 // ---- strains ----
@@ -206,7 +219,7 @@ const detailsOut = {};
 for (const [slug, det] of Object.entries(details)) {
   const h = det.hours || {};
   const hours = DAYS.map((day) => { const x = h[day] || {}; return { day: cap(day), open: x.open === false ? 'Closed' : hhmm(x.start) || '9:00 AM', close: x.open === false ? '' : hhmm(x.end) || '5:00 PM' }; });
-  const about = String(det.description || '').split(/\r?\n\s*\r?\n/).map((p) => p.trim()).filter(Boolean).slice(0, 6);
+  const about = paragraphs(det.description);
   const amenities = (det.amenities || []).map((a) => (typeof a === 'string' ? a : a.amenity || a.name)).filter(Boolean);
   detailsOut[slug] = clean({ hours, about, amenities, address: det.address || '', address2: det.address2 || '', zip: det.zip_code || '', phone: det.phone_number || '', website: det.website || '', deliveryRadius: num(det.delivery_radius_miles), menuCount: num(det.menu_item_count) || 0, license: det.license_number || '' });
 }
