@@ -127,7 +127,7 @@
 .finder-empty .ic24 { color: var(--teal-deep); }
 
 /* DOM pins (LeafletMap pins="dom") */
-.pin { position: relative; width: 44px; height: 44px; }
+.pin { width: 44px; height: 44px; margin: 0; }
 .pin i { position: absolute; left: 50%; top: 50%; translate: -50% -50%; border-radius: 50%; display: block; }
 .pin-dot { width: 16px; height: 16px; background: var(--teal); border: 2px solid var(--mint); box-shadow: 0 2px 8px rgba(11, 43, 38, 0.25); transition: transform 0.25s var(--ease-soft), background-color 0.25s, border-color 0.25s; }
 .pin-halo { width: 36px; height: 36px; background: rgba(20, 179, 138, 0.22); animation: mkBreathe 2.6s ease-in-out infinite; transition: background-color 0.25s; }
