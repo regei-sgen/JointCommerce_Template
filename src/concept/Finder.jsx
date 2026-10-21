@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useOutletContext, useSearchParams } from 'react-router-dom';
 import LeafletMap from '../components/LeafletMap.jsx';
 import { useMedia, useViewportHeight } from './useMedia.js';
@@ -17,7 +17,16 @@ export default function Finder({ cat, place, home = false }) {
   // Map mode covers part of the map: the floating panel on the left (desktop) or the bottom sheet (phones).
   const phone = useMedia('(max-width: 640px)');
   const vh = useViewportHeight();
-  const inset = useMemo(() => (!mapMode ? undefined : phone ? { top: 120, bottom: panelOpen ? Math.round(vh * 0.5) : 0 } : { top: 84, left: panelOpen ? 452 : 0 }), [mapMode, phone, vh, panelOpen]);
+  // Phone sheet height in px (null = the stylesheet's 50vh). The handle drags it; a tap on the handle toggles it.
+  const [sheetH, setSheetH] = useState(null);
+  const [dragging, setDragging] = useState(false);
+  const drag = useRef(null);
+  const sheetPx = sheetH ?? Math.round(vh * 0.5);
+  const SHEET_MIN = 96; const SHEET_MAX = Math.max(SHEET_MIN, vh - 140);
+  const onHandleDown = (e) => { if (!phone) return; drag.current = { y: e.clientY, h: panelOpen ? sheetPx : 0, moved: false }; e.currentTarget.setPointerCapture(e.pointerId); setDragging(true); };
+  const onHandleMove = (e) => { const d = drag.current; if (!d) return; const dy = d.y - e.clientY; if (Math.abs(dy) > 4) d.moved = true; if (!d.moved) return; const h = Math.max(SHEET_MIN, Math.min(SHEET_MAX, d.h + dy)); setSheetH(h); if (!panelOpen) setPanelOpen(true); };
+  const onHandleUp = (e) => { const d = drag.current; drag.current = null; setDragging(false); if (!d) return; if (e.currentTarget.hasPointerCapture && e.currentTarget.hasPointerCapture(e.pointerId)) e.currentTarget.releasePointerCapture(e.pointerId); if (!d.moved) { setPanelOpen((v) => !v); return; } if (d.h + (d.y - e.clientY) < SHEET_MIN + 24) { setPanelOpen(false); setSheetH(null); } };
+  const inset = useMemo(() => (!mapMode ? undefined : phone ? { top: 120, bottom: panelOpen ? sheetPx : 0 } : { top: 84, left: panelOpen ? 452 : 0 }), [mapMode, phone, sheetPx, panelOpen]);
   const [params, setParams] = useSearchParams();
   const q = params.get('q') || '';
   const sel = params.get('sel');
@@ -78,7 +87,7 @@ export default function Finder({ cat, place, home = false }) {
   const n = selected ? stores.length : all.length;
 
   return (
-    <section className={`finder${home ? ' finder-home' : ''}${mapMode && !panelOpen ? ' panel-closed' : ''}`} aria-label={`${info.label} near ${loc}`}>
+    <section className={`finder${home ? ' finder-home' : ''}${mapMode && !panelOpen ? ' panel-closed' : ''}${dragging ? ' dragging' : ''}`} style={mapMode && phone && sheetH ? { '--sheet': `${sheetH}px` } : undefined} aria-label={`${info.label} near ${loc}`}>
       <div className={`finder-panel${mapMode && !panelOpen ? ' closed' : ''}`}>
         <div className="finder-head">
           {selected ? (
@@ -144,7 +153,7 @@ export default function Finder({ cat, place, home = false }) {
           </button>
         )}
         {mapMode && (
-          <button type="button" className="map-panel-tab" aria-expanded={panelOpen} aria-label={panelOpen ? 'Hide the list' : 'Show the list'} onClick={() => setPanelOpen((v) => !v)}>
+          <button type="button" className="map-panel-tab" aria-expanded={panelOpen} aria-label={panelOpen ? (phone ? 'Drag to resize the list, tap to hide it' : 'Hide the list') : 'Show the list'} onClick={phone ? undefined : () => setPanelOpen((v) => !v)} onPointerDown={onHandleDown} onPointerMove={onHandleMove} onPointerUp={onHandleUp} onPointerCancel={onHandleUp}>
             <ChevronLeft className={`ic14${panelOpen ? '' : ' flip-x'}`} />
           </button>
         )}

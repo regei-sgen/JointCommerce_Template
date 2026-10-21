@@ -770,8 +770,10 @@ html.cx-map, html.cx-map body { overflow: hidden; }
   .cx-map .finder-legend { right: auto; left: 12px; bottom: calc(46vh + 12px); }
   .cx-map .finder.panel-closed .finder-legend { bottom: 16px; }
   .map-panel-tab, .cx-map .finder.panel-closed .map-panel-tab { top: auto; left: 50%; bottom: 46vh; translate: -50% 0; width: 56px; height: 26px; border: 1px solid var(--cx-line); border-bottom: 0; border-radius: 12px 12px 0 0; transition: bottom 0.35s var(--ease-soft); }
-  .map-panel-tab .ic14 { transform: rotate(90deg); }
-  .map-panel-tab .flip-x { transform: rotate(-90deg); }
+  /* open: chevron points down (the sheet hides downward); closed: points up */
+  .map-panel-tab .ic14 { transform: rotate(-90deg); }
+  .map-panel-tab .flip-x { transform: rotate(90deg); }
+  .map-panel-tab { touch-action: none; }
   .cx-map .finder.panel-closed .map-panel-tab { bottom: 0; }
 }
 
@@ -951,11 +953,12 @@ button.link:hover, button.link-sm:hover { text-decoration: underline; text-under
 .map-mode-btn, .cx-map .finder-legend, .cx-map .map-panel-tab { z-index: 700; }
 .cx-map .globe-zoom { z-index: 700; }
 @media (max-width: 640px) {
-  .cx-map .finder-panel { height: 50vh; }
+  .cx-map .finder-panel { height: var(--sheet, 50vh); }
   .cx-map .finder-list { flex: 1 1 auto; min-height: 0; overflow-y: auto; } /* the phone layout lets the page scroll instead; the sheet needs its own scroll */
-  .cx-map .finder-legend { bottom: calc(50vh + 12px); }
-  .map-panel-tab, .cx-map .finder.panel-closed .map-panel-tab { bottom: 50vh; }
+  .cx-map .finder-legend { bottom: calc(var(--sheet, 50vh) + 12px); }
+  .map-panel-tab, .cx-map .finder.panel-closed .map-panel-tab { bottom: var(--sheet, 50vh); }
   .cx-map .finder.panel-closed .map-panel-tab { bottom: 0; }
-  .cx-map .globe-zoom { bottom: calc(50vh + 12px); right: 12px; }
+  .cx-map .globe-zoom { bottom: calc(var(--sheet, 50vh) + 12px); right: 12px; }
+  .cx-map .finder.dragging .map-panel-tab, .cx-map .finder.dragging .finder-legend, .cx-map .finder.dragging .globe-zoom, .cx-map .finder.dragging .finder-panel { transition: none; }
   .cx-map .finder.panel-closed .globe-zoom { bottom: 16px; }
 }
