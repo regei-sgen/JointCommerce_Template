@@ -1,11 +1,11 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, Navigate, useOutletContext, useParams } from 'react-router-dom';
 import { typeLabel } from '../data.js';
 import { Pin, Phone, Globe, Star, Clock, Store, ShieldCheck, Truck, Navigate as NavIcon, ChevronLeft, ChevronDown, Tag, Leaf, Info, CreditCard, Banknote, Check } from '../icons.jsx';
 import LeafletMap from '../components/LeafletMap.jsx';
 import { LiveDot, TypeChip } from '../components/ui.jsx';
 import { useReveal } from '../hooks/useReveal.js';
-import { find, menuFor, dealsAt, strainsAt, brandsAt, detailsFor } from './search.js';
+import { find, menuFor, embedFor, dealsAt, strainsAt, brandsAt, detailsFor } from './search.js';
 import { fmtMiles } from './geo.js';
 import { Badge, DealRow, StrainRow, BrandRow } from './cards.jsx';
 
@@ -32,6 +32,7 @@ function Store_({ d, details, slug }) {
   const [week, setWeek] = useState(false);
   const [more, setMore] = useState(false);
   const menu = useMemo(() => menuFor(slug), [slug]);
+  const embed = useMemo(() => embedFor(slug), [slug]);
   const cats = CATS.filter((c) => menu.some((m) => m.category === c));
   const list = useMemo(() => menu
     .filter((m) => cat === 'All' || m.category === cat)
@@ -77,6 +78,12 @@ function Store_({ d, details, slug }) {
             </section>
           )}
 
+          {menu.length === 0 && embed ? (
+            <section className="dp-sec" id="menu" data-reveal style={{ '--i': 1 }}>
+              <h2 className="dp-h2"><Store className="ic18" />Menu<LiveDot className="dp-live">Live on {embed.p}</LiveDot></h2>
+              <MenuEmbed embed={embed} store={d} />
+            </section>
+          ) : (
           <section className="dp-sec" id="menu" data-reveal style={{ '--i': 1 }}>
             <h2 className="dp-h2"><Store className="ic18" />Menu<span className="dcount">{list.length}</span><LiveDot className="dp-live">Live · checked this morning</LiveDot></h2>
             <div className="dp-filters">
@@ -108,6 +115,7 @@ function Store_({ d, details, slug }) {
               {list.length === 0 && <div className="finder-empty"><Leaf className="ic24" /><strong>{menu.length ? 'Nothing in this category today.' : 'This store has not published a live menu yet.'}</strong></div>}
             </div>
           </section>
+          )}
 
           {strains.length > 0 && (
             <section className="dp-sec" data-reveal style={{ '--i': 2 }}>
@@ -160,6 +168,45 @@ function Store_({ d, details, slug }) {
           </div>
         </aside>
       </div>
+    </div>
+  );
+}
+
+const LIVE_SITE = 'https://jointcommerce-web-547419541671.us-central1.run.app';
+// Third-party menu: category chips from the embed's attribute list, then a click-to-load frame.
+// `js` embeds (Dutchie) run the provider's script inside a container; `src` embeds are an iframe.
+function MenuEmbed({ embed, store }) {
+  const [loaded, setLoaded] = useState(false);
+  const host = useRef(null);
+  useEffect(() => {
+    if (!loaded || !embed.js || !host.current) return undefined;
+    const el = host.current;
+    const s = document.createElement('script');
+    s.async = true; s.id = 'dutchie--embed__script'; s.src = embed.js;
+    el.appendChild(s);
+    return () => { el.innerHTML = ''; };
+  }, [loaded, embed.js]);
+  const cats = embed.cats || [];
+  const open = embed.src || (embed.p === 'JointCommerce' ? `${LIVE_SITE}/dispensaries/${store.slug}` : '');
+  const can = !!(embed.js || embed.src);
+  return (
+    <div className="menu-embed">
+      {cats.length > 0 && <div className="finder-chips menu-embed-cats" aria-label="Menu categories">{cats.map((c) => <span key={c} className="chip chip-sm">{c}</span>)}</div>}
+      {!loaded ? (
+        <div className="finder-empty menu-embed-gate">
+          <Store className="ic24" />
+          <strong>{store.name} runs its live menu on {embed.p}.</strong>
+          <span className="muted small">Prices and stock come straight from the store. Loading it opens a {embed.p} frame on this page.</span>
+          <span className="menu-embed-actions">
+            {can && <button type="button" className="btn ink sm" onClick={() => setLoaded(true)}>Load the live menu</button>}
+            {open && <a href={open} target="_blank" rel="noopener noreferrer" className="btn ghost sm">Open on {embed.p}<span className="srl"> (opens in a new tab)</span></a>}
+          </span>
+        </div>
+      ) : embed.js ? (
+        <div className="menu-embed-frame"><div id="dutchie--embed__container" ref={host} /></div>
+      ) : (
+        <div className="menu-embed-frame"><iframe src={embed.src} title={`${store.name} menu on ${embed.p}`} loading="lazy" allow="geolocation; clipboard-write" referrerPolicy="strict-origin-when-cross-origin" /></div>
+      )}
     </div>
   );
 }

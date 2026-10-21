@@ -5,7 +5,7 @@ import { setData } from './search.js';
 import { setPlaces } from './geo.js';
 
 const BASE = `${import.meta.env.BASE_URL}data/jc/`;
-const FILES = ['dispensaries', 'brands', 'strains', 'products', 'deals', 'menus', 'details', 'links', 'geo', 'meta'];
+const FILES = ['dispensaries', 'brands', 'strains', 'products', 'deals', 'menus', 'embeds', 'details', 'links', 'geo', 'meta'];
 
 let promise = null;
 export function loadData() {
@@ -18,9 +18,9 @@ export function loadData() {
         if (!r.ok) throw new Error(`${n}.json ${r.status}`);
         return r.json();
       }));
-      const [dispensaries, brands, strains, products, deals, menus, details, links, geo, meta] = got;
+      const [dispensaries, brands, strains, products, deals, menus, embeds, details, links, geo, meta] = got;
       if (geo) setPlaces(geo);
-      setData({ dispensaries, brands, strains, products, deals, menus, details, ...links, meta });
+      setData({ dispensaries, brands, strains, products, deals, menus, embeds, details, ...links, meta });
       return true;
     } catch (e) {
       console.warn('[jc] snapshot not available, using sample data:', e && e.message);

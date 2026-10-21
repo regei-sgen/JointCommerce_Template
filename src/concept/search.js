@@ -44,7 +44,7 @@ function sampleData() {
   const hash = (seed) => { let h = 0; for (const ch of seed) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return h; };
   const storesOfStrain = Object.fromEntries(strains.map((st) => { const h = hash(st.name); const picked = dispensaries.filter((d, i) => ((h >> i) & 1) === 1 || i === h % dispensaries.length).slice(0, Math.min(st.menus, 6)); return [st.slug, (picked.length ? picked : dispensaries.slice(0, 1)).map((d) => d.slug)]; }));
   const details = Object.fromEntries(dispensaries.map((d) => { const t = dispensaryDetails[d.slug] || null; return [d.slug, t ? { hours: t.hours, about: t.about, amenities: t.amenities, address: t.address, zip: t.zip, phone: t.phone, website: t.website } : null]; }).filter(([, v]) => v));
-  return { dispensaries, brands, strains, deals, products, menus, details, storesOfBrand, storesOfStrain, brandsOfStore: invert(storesOfBrand), strainsOfStore: invert(storesOfStrain), loaded: false };
+  return { dispensaries, brands, strains, deals, products, menus, embeds: {}, details, storesOfBrand, storesOfStrain, brandsOfStore: invert(storesOfBrand), strainsOfStore: invert(storesOfStrain), loaded: false };
 }
 function invert(map) { const out = {}; for (const [k, list] of Object.entries(map)) for (const s of list) (out[s] ||= []).push(k); return out; }
 
@@ -92,7 +92,7 @@ export const defaultSort = (cat) => Object.keys(SORTS[cat])[0];
 // own; the remaining chips of the category combine per FILTER_MODE.
 const BRAND_TYPES = ['Cannabis', 'CBD', 'Edibles', 'Hemp', 'Vape'];
 export const FILTERS = {
-  dispensaries: [['open', 'Open now', (d) => d.open], ['delivery', 'Delivery', (d) => d.delivery], ['verified', 'Verified', (d) => d.verified]],
+  dispensaries: [['open', 'Open now', (d) => d.open], ['delivery', 'Delivery', (d) => d.delivery], ['menu', 'Live menu', (d) => !!d.menu || d.products > 0], ['verified', 'Verified', (d) => d.verified]],
   deals: ['Flower', 'Pre-rolls', 'Vapes', 'Edibles', 'Concentrates'].map((c) => [c.toLowerCase(), c, (d) => d.category === c]),
   brands: [...BRAND_TYPES.map((c) => [c.toLowerCase(), c, (b) => (b.type || b.category) === c]), ['verified', 'Verified', (b) => b.verified, 'and']],
   products: ['Flower', 'Pre-rolls', 'Vapes', 'Edibles', 'Concentrates'].map((c) => [c.toLowerCase(), c, (p) => p.category === c]),
@@ -153,6 +153,10 @@ export function stockedAt(cat, item, origin) {
 
 // One store's menu, deals, strains and brands.
 export const menuFor = (slug) => DATA.menus[slug] || [];
+// Third-party menu embed for a store: { p: provider, src?: iframe URL, js?: Dutchie script URL, cats?: [], modes?: [] } or null.
+export const embedFor = (slug) => (DATA.embeds && DATA.embeds[slug]) || null;
+// Filter keys of `cat` that no row in the data satisfies.
+export const emptyFilters = (cat, keys) => keys.filter((k) => { const f = FILTERS[cat].find(([key]) => key === k); return f && !(DATA[cat] || []).some(f[2]); });
 export const dealsAt = (slug) => DATA.deals.filter((d) => d.storeSlug === slug);
 export const strainsAt = (slug) => { const set = new Set(DATA.strainsOfStore[slug] || []); return set.size ? DATA.strains.filter((s) => set.has(s.slug)) : []; };
 export const brandsAt = (slug) => { const set = new Set(DATA.brandsOfStore[slug] || []); return set.size ? DATA.brands.filter((b) => set.has(b.slug)) : []; };

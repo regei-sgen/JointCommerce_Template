@@ -23,7 +23,32 @@ const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'
 const cap = (s) => s[0].toUpperCase() + s.slice(1);
 const hhmm = (s) => { if (!s) return null; const [h, m] = s.split(':').map(Number); const ap = h >= 12 ? 'PM' : 'AM'; const hh = h % 12 || 12; return `${hh}:${String(m).padStart(2, '0')} ${ap}`; };
 
-const rawD = (await read('dispensaries.json')) || [];
+// menu_html → { p: provider, src: iframe URL | null, js: Dutchie embed script | null, cats: [], modes: [] }.
+// Only URLs and attribute lists leave this function; no markup from the field is kept.
+const attr = (h, name) => { const m = h.match(new RegExp(`${name}=["']([^"']*)["']`)); return m ? m[1] : ''; };
+const firstIframeSrc = (h) => { const m = h.match(/<iframe[\s\S]*?src=["']([^"']+)["']/i); return m ? m[1].replace(/&amp;/g, '&') : ''; };
+function menuEmbed(html) {
+  const h = String(html || '').trim();
+  if (!h) return null;
+  const cats = attr(h, 'data-store-cats').split(/,\s*/).map((c) => c.trim()).filter(Boolean);
+  const modes = attr(h, 'data-store-modes').split(/,\s*/).map((c) => c.trim().toLowerCase()).filter(Boolean);
+  const out = (p, src, js) => clean({ p, src: src || null, js: js || null, cats, modes });
+  if (!/[<>]/.test(h)) return null; // no markup at all (marker strings)
+  const dj = h.match(/https:\/\/dutchie\.com\/api\/v2\/embedded-menu\/([A-Za-z0-9]+)\.js/);
+  if (dj) return out('Dutchie', null, dj[0]);
+  const dm = attr(h, 'data-dutchie-menu') || attr(h, 'data-dutchie-src') || attr(h, 'data-dutchie-iframe');
+  if (dm) return out('Dutchie', /^https?:/.test(dm) ? dm : `https://dutchie.com/${dm.replace(/^\/+/, '')}`, null);
+  const jane = attr(h, 'data-jane-src');
+  if (jane) return out('Jane', jane, null);
+  const src = firstIframeSrc(h);
+  if (!src) return /JC HTML INSTALL|data-jc-menu/.test(h) ? out('JointCommerce', null, null) : null;
+  const host = (src.match(/^https?:\/\/([^/]+)/) || ['', ''])[1].toLowerCase();
+  const p = /iheartjane/.test(host) ? 'Jane' : /getmeadow/.test(host) ? 'Meadow' : /leafly/.test(host) ? 'Leafly' : /dispenseapp/.test(host) ? 'Dispense' : /sweede/.test(host) ? 'Sweede' : /dutchie/.test(host) ? 'Dutchie' : 'Store site';
+  return out(p, src, null);
+}
+
+// Two crawls of the same listing: the per-state pass first, then the older paged pass (used for ids the first lacks).
+const rawD = [...((await read('dispensaries-by-state.json')) || []), ...((await read('dispensaries-by-state-desc.json')) || []), ...((await read('dispensaries.json')) || [])];
 const rawB = (await read('brands.json')) || [];
 const rawS = (await read('strains.json')) || [];
 const geo = await read('geo.json');
@@ -33,14 +58,24 @@ const menus = (await read('menus.json')) || {};
 const brandDetails = (await read('brand-details.json')) || {};
 
 // ---- dispensaries (no descriptions; those live in details) ----
-const dispensaries = rawD.filter((d) => d.slug && d.name).map((d) => clean({
-  slug: d.slug, name: d.name, code: initials(d.name), city: d.city || '', state: d.state || '', zip: d.zip_code || '',
-  lat: num(d.latitude), lng: num(d.longitude), rating: num(d.rating) || 0, reviews: num(d.review_count) || 0,
-  open: !!d.is_open, status: d.is_open ? 'Open now' : 'Closed now', delivery: !!d.has_delivery, pickup: d.has_pickup !== false, verified: !!d.is_verified, claimed: !!d.is_claimed,
-  pinned: !!d.is_pinned, premium: !!d.is_premium, phone: d.phone_number || '', website: d.website || '', logo: d.logo || '',
-  type: d.dispensary_type && d.dispensary_type.title ? d.dispensary_type.title : '',
-  products: details[d.slug] ? num(details[d.slug].menu_item_count) || 0 : 0,
-}));
+const embeds = {};
+// One row per store id: the crawl pages overlap, so the same store can appear more than once.
+const seenIds = new Map();
+for (const d of rawD) { if (!d.slug || !d.name) continue; const prev = seenIds.get(d.id); if (!prev || (!String(prev.menu_html || '').trim() && String(d.menu_html || '').trim())) seenIds.set(d.id, d); }
+console.log('raw rows', rawD.length, 'unique stores', seenIds.size);
+const dispensaries = [...seenIds.values()].map((d) => {
+  const embed = menuEmbed(d.menu_html);
+  if (embed) embeds[d.slug] = embed;
+  return clean({
+    slug: d.slug, name: d.name, code: initials(d.name), city: d.city || '', state: d.state || '', zip: d.zip_code || '',
+    lat: num(d.latitude), lng: num(d.longitude), rating: num(d.rating) || 0, reviews: num(d.review_count) || 0,
+    open: !!d.is_open, status: d.is_open ? 'Open now' : 'Closed now', delivery: !!d.has_delivery || !!(embed && embed.modes && embed.modes.includes('delivery')), pickup: d.has_pickup !== false, verified: !!d.is_verified, claimed: !!d.is_claimed,
+    pinned: !!d.is_pinned, premium: !!d.is_premium, phone: d.phone_number || '', website: d.website || '', logo: d.logo || '',
+    type: d.dispensary_type && d.dispensary_type.title ? d.dispensary_type.title : '',
+    products: details[d.slug] ? num(details[d.slug].menu_item_count) || 0 : 0,
+    menu: embed ? embed.p : '',
+  });
+});
 const dBySlug = Object.fromEntries(dispensaries.map((d) => [d.slug, d]));
 const stateAbbrByName = {};
 if (geo) for (const s of geo.states) stateAbbrByName[s.name.toLowerCase()] = s.state_id;
@@ -135,8 +170,9 @@ await write('strains.json', strains);
 await write('products.json', products);
 await write('deals.json', deals);
 await write('menus.json', menusOut);
+await write('embeds.json', embeds);
 await write('details.json', detailsOut);
 await write('links.json', { storesOfBrand, brandsOfStore, storesOfStrain, strainsOfStore });
 if (geoOut) await write('geo.json', geoOut);
-await write('meta.json', { builtAt: new Date().toISOString(), counts: { dispensaries: dispensaries.length, brands: brands.length, strains: strains.length, products: products.length, deals: deals.length, menus: Object.keys(menusOut).length, details: Object.keys(detailsOut).length, cities: geoOut ? Object.values(geoOut.cities).reduce((n, l) => n + l.length, 0) : 0 } });
+await write('meta.json', { builtAt: new Date().toISOString(), counts: { dispensaries: dispensaries.length, brands: brands.length, strains: strains.length, products: products.length, deals: deals.length, menus: Object.keys(menusOut).length, embeds: Object.keys(embeds).length, delivery: dispensaries.filter((d) => d.delivery).length, details: Object.keys(detailsOut).length, cities: geoOut ? Object.values(geoOut.cities).reduce((n, l) => n + l.length, 0) : 0 } });
 console.log('done');

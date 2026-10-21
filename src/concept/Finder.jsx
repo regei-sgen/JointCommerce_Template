@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import LeafletMap from '../components/LeafletMap.jsx';
 import { useReveal } from '../hooks/useReveal.js';
 import { Map as MapIcon, ChevronLeft, Store, Pin } from '../icons.jsx';
-import { search, find, stockedAt, catInfo, FILTERS, SORTS, defaultSort, itemLink, DATA } from './search.js';
+import { search, find, stockedAt, catInfo, FILTERS, SORTS, defaultSort, itemLink, DATA, emptyFilters } from './search.js';
 import { ResultRow, DispensaryRow, ItemBadge, itemSubtitle } from './cards.jsx';
 
 // List + map for one category. State lives in the URL: q (text), f (filter keys, repeatable),
@@ -65,6 +65,7 @@ export default function Finder({ cat, place, home = false }) {
   }
 
   const info = catInfo(cat);
+  const liveMenus = useMemo(() => (cat === 'products' ? DATA.dispensaries.filter((d) => d.menu || d.products > 0).length : 0), [cat, DATA.loaded]); // eslint-disable-line react-hooks/exhaustive-deps
   const mapKey = `${cat}|${sel || ''}|${points.map((p) => p.slug).sort().join(',')}`;
   const n = selected ? stores.length : all.length;
 
@@ -113,7 +114,8 @@ export default function Finder({ cat, place, home = false }) {
               {all.length > list.length && <button type="button" className="finder-more" onClick={() => setLimit((l) => l + PAGE)}>Show {Math.min(PAGE, all.length - list.length)} more<span className="muted"> · {list.length} of {all.length}</span></button>}
             </>
           ) : (
-            <Empty text={DATA[cat].length === 0 ? `No ${info.label.toLowerCase()} published yet.` : q ? `Nothing matches “${q}”. Try another word or clear a filter.` : 'Nothing matches these filters.'}>
+            <Empty text={emptyCopy(cat, info, q, filters)}>
+              {cat === 'products' && liveMenus > 0 && <Link to="/dispensaries?f=menu" className="link link-sm">{liveMenus.toLocaleString()} dispensaries have a live menu</Link>}
               {(q || filters.length > 0) && <Link to={`/${cat}`} className="link link-sm">Clear search and filters</Link>}
             </Empty>
           )}
@@ -130,6 +132,15 @@ export default function Finder({ cat, place, home = false }) {
       </div>
     </section>
   );
+}
+
+// Empty-list copy: no rows in the category, a chip that no row in the data satisfies, a text miss, or a filter miss.
+function emptyCopy(cat, info, q, filters) {
+  const label = info.label.toLowerCase();
+  if (DATA[cat].length === 0) return `No ${label} published yet.`;
+  const none = emptyFilters(cat, filters);
+  if (none.length) { const names = none.map((k) => FILTERS[cat].find(([key]) => key === k)[1].toLowerCase()); return `No ${label} offer ${names.join(' and ')} yet.`; }
+  return q ? `Nothing matches “${q}”. Try another word or clear a filter.` : 'Nothing matches these filters.';
 }
 
 // Brand facts from the snapshot: first About paragraph, outbound links, parent and child brands.

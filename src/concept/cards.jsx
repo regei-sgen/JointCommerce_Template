@@ -50,7 +50,7 @@ export function DispensaryRow({ d, i, hot, onHover, to }) {
       badge={<Badge tone="ink">{d.code}</Badge>}
       title={<>{d.name}{d.verified && <><ShieldCheck className="ic14 frow-verified" /><span className="srl">Verified</span></>}</>}
       meta={<><Pin className="ic14" />{d.city} · {fmtMiles(d.miles)} mi<span className="dot" /><span className="rating"><Star className="ic14" />{d.rating.toFixed(1)}</span><span className="muted"> ({d.reviews})</span></>}
-      foot={<><LiveDot>{d.status}</LiveDot>{d.delivery && <span className="chip chip-sm"><Truck className="ic14" />Delivery</span>}<span className="chip chip-sm">{d.products} products</span></>}
+      foot={<><LiveDot>{d.status}</LiveDot>{d.delivery && <span className="chip chip-sm"><Truck className="ic14" />Delivery</span>}{d.products > 0 ? <span className="chip chip-sm">{d.products} products</span> : d.menu ? <span className="chip chip-sm"><Store className="ic14" />Live menu</span> : <span className="muted small">No menu yet</span>}</>}
     />
   );
 }

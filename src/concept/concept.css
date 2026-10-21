@@ -600,6 +600,17 @@
 .finder-links .chip:hover { border-color: var(--cx-line-strong); background: var(--cx-tint); }
 .finder-links .chip .muted { font-weight: 500; }
 
+/* ===== store page: third-party live menu ===== */
+.menu-embed { display: flex; flex-direction: column; gap: 10px; margin: 0 8px; }
+.menu-embed-cats { padding-bottom: 12px; border-bottom: 1px solid var(--cx-line); }
+.menu-embed-cats .chip { background: #fff; }
+.menu-embed-gate { margin: 0; }
+.menu-embed-gate .small { max-width: 44ch; }
+.menu-embed-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 6px; }
+.menu-embed-frame { border: 1px solid var(--cx-line); border-radius: 14px; overflow: hidden; background: #fff; }
+.menu-embed-frame iframe { display: block; width: 100%; height: 1200px; border: 0; }
+.menu-embed-frame #dutchie--embed__container { min-height: 600px; }
+
 /* ===== breakpoints ===== */
 @media (max-width: 1200px) {
   .cx { --sb: 76px; }
