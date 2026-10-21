@@ -258,7 +258,8 @@
 /* ===== polish: surfaces, type, states (same tokens, same placements) =====
    One radius scale: 20px panels, 12px controls, 999px pills. Hairlines are ink-tinted, shadows are
    reserved for floating things (dropdown, legend, modal). Rows sit flat and tint on hover. */
-.cx { --cx-line: rgba(11, 43, 38, 0.1); --cx-line-strong: rgba(11, 43, 38, 0.16); --cx-tint: rgba(11, 43, 38, 0.035); --cx-float: 0 1px 2px rgba(11, 43, 38, 0.06), 0 16px 40px -16px rgba(11, 43, 38, 0.28); font-feature-settings: "cv11", "ss01"; }
+/* tokens on :root too, so portaled layers (cart drawer, toast, modals) outside .cx resolve them */
+:root, .cx { --cx-line: rgba(11, 43, 38, 0.1); --cx-line-strong: rgba(11, 43, 38, 0.16); --cx-tint: rgba(11, 43, 38, 0.035); --cx-float: 0 1px 2px rgba(11, 43, 38, 0.06), 0 16px 40px -16px rgba(11, 43, 38, 0.28); font-feature-settings: "cv11", "ss01"; }
 .cx :focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; border-radius: 10px; }
 .cx .wtb-field input:focus-visible, .cx select:focus-visible { outline: none; }
 
@@ -929,4 +930,26 @@ html.cx-map, html.cx-map body { overflow: hidden; }
   .co { padding: 12px 14px 40px; }
   .co-grid { grid-template-columns: 1fr; }
   .co-side { position: static; }
+}
+
+/* ===== text-style buttons and outline buttons inside the shell ===== */
+button.link, button.link-sm { appearance: none; -webkit-appearance: none; border: 0; background: transparent; padding: 0; margin: 0; font: inherit; font-weight: 700; color: var(--ink); cursor: pointer; display: inline-flex; align-items: center; gap: 4px; }
+button.link-sm { font-size: 12.5px; }
+button.link:hover, button.link-sm:hover { text-decoration: underline; text-underline-offset: 3px; }
+.cart-actions .btn.ghost, .co-done .btn.ghost, .co-empty .btn.ghost { background: #fff; border: 1px solid var(--cx-line-strong); color: var(--ink); }
+.cart-actions .btn.ghost:hover, .co-done .btn.ghost:hover { background: var(--cx-tint); border-color: var(--ink); }
+.cart-actions { align-items: center; }
+.cart-actions .cart-clear { margin-right: auto; color: var(--muted); }
+.co-summary .link-sm { margin-top: 0; }
+
+/* map mode: the exit control, legend and panel tab stay above the globe layer (z 650) */
+.map-mode-btn, .cx-map .finder-legend, .cx-map .map-panel-tab { z-index: 700; }
+.cx-map .globe-zoom { z-index: 700; }
+@media (max-width: 640px) {
+  .cx-map .finder-panel { height: 50vh; }
+  .cx-map .finder-legend { bottom: calc(50vh + 12px); }
+  .map-panel-tab, .cx-map .finder.panel-closed .map-panel-tab { bottom: 50vh; }
+  .cx-map .finder.panel-closed .map-panel-tab { bottom: 0; }
+  .cx-map .globe-zoom { bottom: calc(50vh + 12px); right: 12px; }
+  .cx-map .finder.panel-closed .globe-zoom { bottom: 16px; }
 }

@@ -148,8 +148,8 @@ function CartDrawer() {
             <div className="cart-sub"><span>Subtotal</span><strong>{money(cart.subtotal)}</strong></div>
             <p className="muted small">Taxes and pickup details are set by each store when you order.</p>
             <div className="cart-actions">
-              <button type="button" className="btn ghost sm" onClick={closeCart}>Keep browsing</button>
               <button type="button" className="link link-sm cart-clear" onClick={cart.clear}>Clear cart</button>
+              <button type="button" className="btn ghost sm" onClick={closeCart}>Keep browsing</button>
               <button type="button" className="btn ink sm" onClick={() => { closeCart(); navigate('/checkout'); }}>Checkout</button>
             </div>
           </footer>
