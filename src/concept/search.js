@@ -19,29 +19,45 @@ export const catInfo = (key) => CATS.find((c) => c.key === key) || CATS[0];
 export const slugify = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 const stateOf = (city) => (city.split(', ')[1] || '').trim();
 
-// Listings sorted first in every category. Sample set.
+// ---- data registry ----
+// `DATA` starts with the sample set and is replaced by `setData()` when the API snapshot loads
+// (src/concept/jcData.js). Every function below reads DATA at call time.
 const FEATURED = new Set(['natures-remedy-tyngsboro', 'ascend-boston', 'hashery', 'wyld', 'kiva', 'blue-dream', 'runtz']);
-export const isFeatured = (item) => FEATURED.has(item.slug);
-
-export const dispensaries = allDispensaries.map((d) => ({ ...d, state: stateOf(d.city), featured: FEATURED.has(d.slug) }));
+const stateOfCity = (city) => (city.split(', ')[1] || '').trim();
 
 // A copy of `d` with `miles` measured from `origin` ({lat,lng}); without coordinates the sample value stands.
-export const located = (d, origin) => (origin && typeof origin.lat === 'number' ? { ...d, miles: Math.round(milesBetween(origin, d) * 10) / 10 } : d);
-const bySlug = Object.fromEntries(dispensaries.map((d) => [d.slug, d]));
-const byName = (name) => dispensaries.find((d) => d.name === name);
+export const located = (d, origin) => (origin && typeof origin.lat === 'number' && typeof d.lat === 'number' ? { ...d, miles: Math.round(milesBetween(origin, d) * 10) / 10 } : d);
 
-export const brands = allBrands.map((b) => ({ ...b, featured: FEATURED.has(b.slug) }));
-export const strains = allStrains.map((s) => ({ ...s, slug: slugify(s.name), featured: FEATURED.has(slugify(s.name)) }));
-export const deals = allDeals.map((d, i) => { const storeSlug = byName(d.store)?.slug; return { ...d, slug: `deal-${slugify(d.name)}-${i}`, storeSlug, featured: FEATURED.has(storeSlug) }; });
-export const products = [
-  ...deals.map((d) => ({ ...d, slug: `p-${d.slug}` })),
-  ...dispensaryDetails.hashery.menuHighlights.map((m, i) => ({
-    name: m.name, meta: m.meta, price: m.price, type: m.type, thc: m.thc, store: 'Hashery', storeSlug: 'hashery', slug: `p-hashery-${slugify(m.name)}-${i}`, featured: FEATURED.has('hashery'),
+function sampleData() {
+  const dispensaries = allDispensaries.map((d) => ({ ...d, state: stateOfCity(d.city), featured: FEATURED.has(d.slug) }));
+  const byName = (name) => dispensaries.find((d) => d.name === name);
+  const brands = allBrands.map((b) => ({ ...b, featured: FEATURED.has(b.slug) }));
+  const strains = allStrains.map((s) => ({ ...s, slug: slugify(s.name), featured: FEATURED.has(slugify(s.name)) }));
+  const deals = allDeals.map((d, i) => { const storeSlug = byName(d.store)?.slug; return { ...d, slug: `deal-${slugify(d.name)}-${i}`, storeSlug, featured: FEATURED.has(storeSlug) }; });
+  const highlights = (slug, storeName) => dispensaryDetails.hashery.menuHighlights.map((m, i) => ({
+    name: m.name, meta: m.meta, price: m.price, type: m.type, thc: m.thc, store: storeName, storeSlug: slug, slug: `p-${slug}-${slugify(m.name)}-${i}`, featured: FEATURED.has(slug),
     category: { 'Pre-roll': 'Pre-rolls', Vape: 'Vapes', Edible: 'Edibles' }[m.meta.split(' · ')[0]] || m.meta.split(' · ')[0],
-  })),
-];
+  }));
+  const menus = Object.fromEntries(dispensaries.map((d) => [d.slug, [...deals.filter((x) => x.storeSlug === d.slug).map((x) => ({ ...x, slug: `p-${x.slug}` })), ...highlights(d.slug, d.name)]]));
+  const products = [...deals.map((d) => ({ ...d, slug: `p-${d.slug}` })), ...highlights('hashery', 'Hashery')];
+  const storesOfBrand = Object.fromEntries(brands.map((b) => [b.slug, dispensaries.filter((d) => b.states.includes(d.state)).map((d) => d.slug)]));
+  const hash = (seed) => { let h = 0; for (const ch of seed) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return h; };
+  const storesOfStrain = Object.fromEntries(strains.map((st) => { const h = hash(st.name); const picked = dispensaries.filter((d, i) => ((h >> i) & 1) === 1 || i === h % dispensaries.length).slice(0, Math.min(st.menus, 6)); return [st.slug, (picked.length ? picked : dispensaries.slice(0, 1)).map((d) => d.slug)]; }));
+  const details = Object.fromEntries(dispensaries.map((d) => { const t = dispensaryDetails[d.slug] || null; return [d.slug, t ? { hours: t.hours, about: t.about, amenities: t.amenities, address: t.address, zip: t.zip, phone: t.phone, website: t.website } : null]; }).filter(([, v]) => v));
+  return { dispensaries, brands, strains, deals, products, menus, details, storesOfBrand, storesOfStrain, brandsOfStore: invert(storesOfBrand), strainsOfStore: invert(storesOfStrain), loaded: false };
+}
+function invert(map) { const out = {}; for (const [k, list] of Object.entries(map)) for (const s of list) (out[s] ||= []).push(k); return out; }
 
-const SOURCE = { dispensaries, deals, brands, products, strains };
+export const DATA = sampleData();
+let bySlug = Object.fromEntries(DATA.dispensaries.map((d) => [d.slug, d]));
+export function setData(next) {
+  Object.assign(DATA, next, { loaded: true });
+  bySlug = Object.fromEntries(DATA.dispensaries.map((d) => [d.slug, d]));
+}
+export const isLoaded = () => DATA.loaded;
+export const storeBySlug = (slug) => bySlug[slug] || null;
+
+const SOURCE = DATA; // cat → list
 export const find = (cat, slug, origin) => { const it = (SOURCE[cat] || []).find((i) => i.slug === slug) || null; return it && cat === 'dispensaries' ? located(it, origin) : it; };
 
 const norm = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
@@ -57,7 +73,7 @@ const FIELDS = {
 };
 
 export const SORTS = {
-  dispensaries: { nearest: ['Nearest', (a, b) => a.miles - b.miles], rated: ['Top rated', (a, b) => b.rating - a.rating], stocked: ['Most products', (a, b) => b.products - a.products] },
+  dispensaries: { nearest: ['Nearest', (a, b) => (a.miles ?? 1e9) - (b.miles ?? 1e9)], rated: ['Top rated', (a, b) => b.rating - a.rating], stocked: ['Most products', (a, b) => b.products - a.products] },
   deals: { pct: ['Biggest discount', (a, b) => b.pct - a.pct], price: ['Lowest price', (a, b) => a.price - b.price] },
   brands: { menus: ['Most menus', (a, b) => b.menus - a.menus], name: ['A to Z', (a, b) => a.name.localeCompare(b.name)] },
   products: { price: ['Lowest price', (a, b) => a.price - b.price], pct: ['Biggest discount', (a, b) => (b.pct || 0) - (a.pct || 0)] },
@@ -75,6 +91,9 @@ export const FILTERS = {
 };
 // Chips in the same group are OR-ed (category chips); dispensary chips are AND-ed.
 export const FILTER_MODE = { dispensaries: 'and', deals: 'or', brands: 'or', products: 'or', strains: 'or' };
+
+const feat = (it) => (it.featured || it.pinned || it.premium ? 1 : 0);
+export const isFeatured = (it) => feat(it) === 1;
 
 function score(fields, terms) {
   const [title, ...rest] = fields.map(norm);
@@ -103,7 +122,7 @@ export function search(q, cat = 'all', { filters = [], sort, origin } = {}) {
       .filter(passes)
       .map((item) => ({ item, s: terms.length ? score(FIELDS[k](item), terms) : 1 }))
       .filter((r) => r.s > 0)
-      .sort((a, b) => (b.item.featured ? 1 : 0) - (a.item.featured ? 1 : 0) || b.s - a.s || sortFn(a.item, b.item));
+      .sort((a, b) => feat(b.item) - feat(a.item) || b.s - a.s || sortFn(a.item, b.item));
     out[k] = ranked.map((r) => r.item);
   }
   return out;
@@ -111,39 +130,33 @@ export function search(q, cat = 'all', { filters = [], sort, origin } = {}) {
 
 export const total = (res) => Object.values(res).reduce((n, l) => n + l.length, 0);
 
-// Deterministic sample subset of dispensaries for items whose source data has no store list.
-function sample(seed, n) {
-  let h = 0;
-  for (const ch of seed) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
-  const picked = [];
-  for (let i = 0; i < dispensaries.length && picked.length < n; i++) {
-    if (((h >> i) & 1) === 1 || i === h % dispensaries.length) picked.push(dispensaries[i]);
-  }
-  return picked.length ? picked : dispensaries.slice(0, Math.max(1, n));
-}
-
 // Dispensaries that carry `item`, nearest first.
 export function stockedAt(cat, item, origin) {
-  let list;
-  if (cat === 'dispensaries') list = [item];
-  else if (cat === 'deals' || cat === 'products') list = item.storeSlug ? [bySlug[item.storeSlug]] : [];
-  else if (cat === 'brands') list = dispensaries.filter((d) => item.states.includes(d.state));
-  else list = sample(item.name, Math.min(item.menus, 6)); // strains
-  return list.filter(Boolean).map((d) => located(d, origin)).sort((a, b) => a.miles - b.miles);
+  let slugs;
+  if (cat === 'dispensaries') slugs = [item.slug];
+  else if (cat === 'deals' || cat === 'products') slugs = item.storeSlug ? [item.storeSlug] : [];
+  else if (cat === 'brands') slugs = DATA.storesOfBrand[item.slug] || [];
+  else slugs = DATA.storesOfStrain[item.slug] || [];
+  return slugs.map((x) => bySlug[x]).filter(Boolean).map((d) => located(d, origin)).sort((a, b) => (a.miles ?? 1e9) - (b.miles ?? 1e9));
 }
 
-// Menu of one store: its own products and deals, padded with the sample highlights when short.
-export function menuFor(slug) {
-  const own = products.filter((p) => p.storeSlug === slug);
-  const seen = new Set(own.map((p) => p.name));
-  const pad = dispensaryDetails.hashery.menuHighlights
-    .filter((m) => !seen.has(m.name))
-    .map((m, i) => ({ name: m.name, meta: m.meta, price: m.price, type: m.type, thc: m.thc, store: bySlug[slug]?.name || slug, storeSlug: slug, slug: `p-${slug}-${slugify(m.name)}-${i}`, category: { 'Pre-roll': 'Pre-rolls', Vape: 'Vapes', Edible: 'Edibles' }[m.meta.split(' · ')[0]] || m.meta.split(' · ')[0] }));
-  return own.length >= 4 ? own : [...own, ...pad];
+// One store's menu, deals, strains and brands.
+export const menuFor = (slug) => DATA.menus[slug] || [];
+export const dealsAt = (slug) => DATA.deals.filter((d) => d.storeSlug === slug);
+export const strainsAt = (slug) => { const set = new Set(DATA.strainsOfStore[slug] || []); return set.size ? DATA.strains.filter((s) => set.has(s.slug)) : []; };
+export const brandsAt = (slug) => { const set = new Set(DATA.brandsOfStore[slug] || []); return set.size ? DATA.brands.filter((b) => set.has(b.slug)) : []; };
+
+const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+// Store page details: snapshot details when present, otherwise defaults built from the listing row.
+export function detailsFor(slug, d) {
+  const x = DATA.details[slug] || {};
+  return {
+    hours: x.hours && x.hours.length ? x.hours : DAYS.map((day) => ({ day, open: '9:00 AM', close: '5:00 PM' })),
+    about: x.about && x.about.length ? x.about : [],
+    amenities: x.amenities || [],
+    address: x.address || d.address || '', zip: x.zip || d.zip || '', phone: x.phone || d.phone || '', website: (x.website || d.website || '').replace(/^https?:\/\//, '').replace(/\/$/, ''),
+  };
 }
-export const dealsAt = (slug) => deals.filter((d) => d.storeSlug === slug);
-export const strainsAt = (slug) => strains.filter((s) => stockedAt('strains', s).some((d) => d.slug === slug));
-export const brandsAt = (slug) => { const d = bySlug[slug]; return d ? brands.filter((b) => b.states.includes(d.state)) : []; };
 
 // Where a click on a result goes: dispensaries open their page; everything else opens inside the finder.
 export function itemLink(cat, item) {

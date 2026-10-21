@@ -5,6 +5,7 @@ import { Home, Store, Truck, Tag, Star, Grid, Leaf, Book, User } from '../icons.
 import { LocationModal, LoginModal, SignupModal } from '../components/AuthModals.jsx';
 import WhereToBuy, { useFinderCat } from './WhereToBuy.jsx';
 import { DEFAULT_PLACE, resolvePlace, placePath } from './geo.js';
+import { loadData } from './jcData.js';
 import './concept.css';
 
 // The logo mark from public/img, resolved against Vite's base so it also works on a subpath host.
@@ -42,6 +43,8 @@ export default function Shell() {
   const navigate = useNavigate();
   const cat = useFinderCat();
   const [place, setPlace] = useState(DEFAULT_PLACE);
+  const [ready, setReady] = useState(false);
+  useEffect(() => { let on = true; loadData().finally(() => { if (on) setReady(true); }); return () => { on = false; }; }, []);
   const locPath = placePath(place);
   const [modal, setModal] = useState(null); // 'location' | 'login' | 'signup'
   const hide = () => setModal(null);
@@ -94,7 +97,7 @@ export default function Shell() {
             <button type="button" className="btn ink sm" onClick={() => setModal('signup')}>Sign up</button>
           </div>
         </header>
-        <Outlet context={{ place, setPlace: applyPlace, openLocation: () => setModal('location') }} />
+        {ready ? <Outlet context={{ place, setPlace: applyPlace, openLocation: () => setModal('location'), ready }} /> : <div className="cx-loading" role="status" aria-live="polite"><span className="cx-loading-bar" /><span className="srl">Loading</span></div>}
       </div>
 
       <nav className="cx-tabbar" aria-label="Browse">

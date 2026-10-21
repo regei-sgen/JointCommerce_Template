@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import LeafletMap from '../components/LeafletMap.jsx';
 import { useReveal } from '../hooks/useReveal.js';
 import { Map as MapIcon, ChevronLeft, Store, Pin } from '../icons.jsx';
-import { search, find, stockedAt, catInfo, FILTERS, SORTS, defaultSort } from './search.js';
+import { search, find, stockedAt, catInfo, FILTERS, SORTS, defaultSort, itemLink } from './search.js';
 import { ResultRow, DispensaryRow, ItemBadge, itemSubtitle } from './cards.jsx';
 
 // List + map for one category. State lives in the URL: q (text), f (filter keys, repeatable),
@@ -27,7 +27,13 @@ export default function Finder({ cat, place, home = false }) {
   };
   const toggleFilter = (k) => set({ f: filters.includes(k) ? filters.filter((x) => x !== k) : [...filters, k] });
 
-  const list = useMemo(() => search(q, cat, { filters, sort, origin: place })[cat], [q, cat, filters.join('|'), sort, place]); // eslint-disable-line react-hooks/exhaustive-deps
+  const all = useMemo(() => search(q, cat, { filters, sort, origin: place })[cat], [q, cat, filters.join('|'), sort, place]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Rows and pins render in pages of PAGE; the heading still counts everything.
+  const PAGE = 60;
+  const [limit, setLimit] = useState(PAGE);
+  useEffect(() => { setLimit(PAGE); }, [q, cat, sort, filters.join('|')]); // eslint-disable-line react-hooks/exhaustive-deps
+  const list = useMemo(() => all.slice(0, limit), [all, limit]);
+  const navigate = useNavigate();
   const selected = sel ? find(cat, sel, place) : null;
   // An unknown `sel` is dropped from the URL instead of riding along on every later change.
   useEffect(() => { if (sel && !selected) set({ sel: null }); }, [sel, selected]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -60,7 +66,7 @@ export default function Finder({ cat, place, home = false }) {
 
   const info = catInfo(cat);
   const mapKey = `${cat}|${sel || ''}|${points.map((p) => p.slug).sort().join(',')}`;
-  const n = selected ? stores.length : list.length;
+  const n = selected ? stores.length : all.length;
 
   return (
     <section className={`finder${home ? ' finder-home' : ''}`} aria-label={`${info.label} near ${loc}`}>
@@ -101,7 +107,10 @@ export default function Finder({ cat, place, home = false }) {
             stores.length ? stores.map((d, i) => <DispensaryRow key={d.slug} d={d} i={i} hot={hover === d.slug} onHover={setHover} />)
               : <Empty text="No dispensary near you lists this yet." />
           ) : list.length ? (
-            list.map((item, i) => <ResultRow key={item.slug} cat={cat} item={item} i={i} hot={hover === item.slug} onHover={setHover} />)
+            <>
+              {list.map((item, i) => <ResultRow key={item.slug} cat={cat} item={item} i={i} hot={hover === item.slug} onHover={setHover} />)}
+              {all.length > list.length && <button type="button" className="finder-more" onClick={() => setLimit((l) => l + PAGE)}>Show {Math.min(PAGE, all.length - list.length)} more<span className="muted"> · {list.length} of {all.length}</span></button>}
+            </>
           ) : (
             <Empty text={q ? `Nothing matches “${q}”. Try another word or clear a filter.` : 'Nothing matches these filters.'}>
               {(q || filters.length > 0) && <Link to={`/${cat}`} className="link link-sm">Clear search and filters</Link>}
@@ -111,7 +120,8 @@ export default function Finder({ cat, place, home = false }) {
       </div>
       <div className="finder-map">
         <LeafletMap
-          key={mapKey} className="finder-leaflet" tiles="light" pins="dom" eager fit wheel={!home}
+          key={mapKey} className="finder-leaflet" tiles="streets" pins="dom" eager fit fitControl wheel={!home}
+          onSelect={(pt) => navigate(itemLink('dispensaries', pt))}
           center={[42.3, -71.5]} zoom={8} points={points} hot={hot} focus={focus} focusMode="ensure" flyDuration={0.7}
           ariaLabel={`Map of ${info.label.toLowerCase()} near ${loc}`}
         />

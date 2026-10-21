@@ -1,11 +1,11 @@
 import { useMemo, useState } from 'react';
 import { Link, Navigate, useOutletContext, useParams } from 'react-router-dom';
-import { getDispensary, typeLabel } from '../data.js';
+import { typeLabel } from '../data.js';
 import { Pin, Phone, Globe, Star, Clock, Store, ShieldCheck, Truck, Navigate as NavIcon, ChevronLeft, ChevronDown, Tag, Leaf, Info, CreditCard, Banknote, Check } from '../icons.jsx';
 import LeafletMap from '../components/LeafletMap.jsx';
 import { LiveDot, TypeChip } from '../components/ui.jsx';
 import { useReveal } from '../hooks/useReveal.js';
-import { find, menuFor, dealsAt, strainsAt, brandsAt } from './search.js';
+import { find, menuFor, dealsAt, strainsAt, brandsAt, detailsFor } from './search.js';
 import { fmtMiles } from './geo.js';
 import { Badge, DealRow, StrainRow, BrandRow } from './cards.jsx';
 
@@ -22,7 +22,7 @@ export default function DispensaryConceptPage() {
   const d = find('dispensaries', slug, place);
   if (!d) return <Navigate to="/dispensaries" replace />;
   // key={slug}: a slug change remounts the body (filter state, side map, reveals).
-  return <Store_ key={slug} d={d} details={getDispensary(slug, d)} slug={slug} />;
+  return <Store_ key={slug} d={d} details={detailsFor(slug, d)} slug={slug} />;
 }
 
 function Store_({ d, details, slug }) {
@@ -59,7 +59,7 @@ function Store_({ d, details, slug }) {
           <div className="dp-contact">
             <span><Pin className="ic14" />{details.address}, {details.zip}</span>
             <span><Phone className="ic14" />{details.phone}</span>
-            <a href={`https://${details.website}`} target="_blank" rel="noreferrer"><Globe className="ic14" />{details.website}<span className="srl"> (opens in a new tab)</span></a>
+            {details.website && <a href={`https://${details.website}`} target="_blank" rel="noreferrer"><Globe className="ic14" />{details.website}<span className="srl"> (opens in a new tab)</span></a>}
           </div>
         </div>
         <div className="dp-actions">
@@ -105,7 +105,7 @@ function Store_({ d, details, slug }) {
                   </span>
                 </div>
               ))}
-              {list.length === 0 && <div className="finder-empty"><Leaf className="ic24" /><strong>Nothing in this category today.</strong></div>}
+              {list.length === 0 && <div className="finder-empty"><Leaf className="ic24" /><strong>{menu.length ? 'Nothing in this category today.' : 'This store has not published a live menu yet.'}</strong></div>}
             </div>
           </section>
 
@@ -123,16 +123,16 @@ function Store_({ d, details, slug }) {
             </section>
           )}
 
-          <section className="dp-sec" data-reveal style={{ '--i': 4 }}>
+          {details.about.length > 0 && <section className="dp-sec" data-reveal style={{ '--i': 4 }}>
             <h2 className="dp-h2"><Info className="ic18" />About {d.name}</h2>
             <div className={`dabout${more ? ' open' : ''}`}>{details.about.map((p) => <p key={p.slice(0, 24)}>{p}</p>)}</div>
             {details.about.length > 1 && <button type="button" className="link link-sm dmore" onClick={() => setMore((v) => !v)}>{more ? 'Show less' : 'Read more'}<ChevronDown className={`ic14 ic-after${more ? ' flip' : ''}`} /></button>}
-          </section>
+          </section>}
         </main>
 
         <aside className="dp-side">
           <div className="dp-card dp-map" data-reveal>
-            <LeafletMap className="dp-leaflet" tiles="light" pins="dom" center={[d.lat, d.lng]} zoom={13} interactive={false} eager points={[d]} ariaLabel={`Map of ${d.name}`} />
+            <LeafletMap className="dp-leaflet" tiles="streets" pins="dom" center={[d.lat, d.lng]} zoom={13} interactive={false} eager points={[d]} ariaLabel={`Map of ${d.name}`} />
           </div>
           <div className="dp-card" data-reveal style={{ '--i': 1 }}>
             <h2 className="dp-h3"><Clock className="ic18" />Hours</h2>

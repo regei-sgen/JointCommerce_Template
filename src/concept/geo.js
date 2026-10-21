@@ -1,7 +1,7 @@
 // Places the location field resolves, and the distance maths every "near you" number uses.
 export const DEFAULT_PLACE = { name: 'Boston, MA', lat: 42.3601, lng: -71.0589 };
 
-const PLACES = [
+let PLACES = [
   DEFAULT_PLACE,
   { name: 'Los Angeles, CA', lat: 34.0522, lng: -118.2437 },
   { name: 'Denver, CO', lat: 39.7392, lng: -104.9903 },
@@ -34,8 +34,20 @@ const PLACES = [
   { name: 'Reno, NV', lat: 39.5296, lng: -119.8138 },
 ];
 
-const STATES = { MA: 'Massachusetts', CA: 'California', CO: 'Colorado', MI: 'Michigan', OR: 'Oregon', NY: 'New York', NJ: 'New Jersey', IL: 'Illinois', WA: 'Washington', FL: 'Florida', OK: 'Oklahoma', NM: 'New Mexico', NV: 'Nevada' };
+let STATES = { MA: 'Massachusetts', CA: 'California', CO: 'Colorado', MI: 'Michigan', OR: 'Oregon', NY: 'New York', NJ: 'New Jersey', IL: 'Illinois', WA: 'Washington', FL: 'Florida', OK: 'Oklahoma', NM: 'New Mexico', NV: 'Nevada' };
 export const COUNTRY_SLUG = 'united-states';
+
+// Replace the place list with the snapshot's states and cities (biggest cities first so a prefix
+// match lands on the larger one). `geo` = { states: [{abbr,name,...}], cities: { abbr: [{name,lat,lng,count}] } }.
+export function setPlaces(geo) {
+  if (!geo || !geo.states) return;
+  STATES = Object.fromEntries(geo.states.map((s) => [s.abbr, s.name]));
+  const list = [];
+  for (const [ab, cities] of Object.entries(geo.cities || {})) for (const c of cities) if (typeof c.lat === 'number') list.push({ name: `${c.name}, ${ab}`, lat: c.lat, lng: c.lng, count: c.count || 0 });
+  list.sort((a, b) => b.count - a.count);
+  if (list.length) PLACES = list;
+}
+export const placeCount = () => PLACES.length;
 export const slug = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
 const abbrOf = (p) => (p.name.split(',')[1] || '').trim();
 const cityOf = (p) => p.name.split(',')[0].trim();
