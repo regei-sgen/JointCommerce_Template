@@ -30,6 +30,7 @@ const geo = await read('geo.json');
 const links = (await read('brand-links.json')) || {};
 const details = (await read('details.json')) || {};
 const menus = (await read('menus.json')) || {};
+const brandDetails = (await read('brand-details.json')) || {};
 
 // ---- dispensaries (no descriptions; those live in details) ----
 const dispensaries = rawD.filter((d) => d.slug && d.name).map((d) => clean({
@@ -90,12 +91,18 @@ for (const [slug, items] of Object.entries(menusOut)) {
 }
 
 // ---- brands ----
-const brands = rawB.filter((b) => b.slug && b.name).map((b) => {
+const brands = rawB.filter((b) => b.slug && b.name).map((b, i) => {
+  const det = brandDetails[b.slug] || {};
   const stores = storesOfBrand[b.slug] || [];
   const states = [...new Set(stores.map((s) => dBySlug[s].state).filter(Boolean))];
   const own = b.state ? stateAbbrByName[String(b.state).toLowerCase()] || (String(b.state).length === 2 ? b.state : null) : null;
   if (own && !states.includes(own)) states.push(own);
-  return clean({ slug: b.slug, name: b.name, initial: initials(b.name), category: b.brand_type_display || 'Brand', menus: stores.length, products: num(b.product_count) || (links[b.slug] ? links[b.slug].products.length : 0), states, blurb: (b.description || '').replace(/\s+/g, ' ').slice(0, 140), verified: !!b.is_verified, claimed: !!b.is_claimed, logo: b.logo || '', website: b.website || '', city: b.city || '', rating: num(b.rating) || 0, featured: !!b.is_verified, tags: [] });
+  const type = b.brand_type_display || 'Other';
+  const social = Object.fromEntries(Object.entries(det.social || {}).filter(([, v]) => v));
+  const about = String(det.description || b.description || '').split(/\r?\n\s*\r?\n/).map((p) => p.trim()).filter(Boolean).slice(0, 6);
+  const parent = det.parent_brand && det.parent_brand.slug !== b.slug ? { name: det.parent_brand.name, slug: det.parent_brand.slug } : null;
+  const children = (det.child_brands || []).filter((c) => c && c.slug).map((c) => ({ name: c.name, slug: c.slug }));
+  return clean({ slug: b.slug, name: b.name, initial: initials(b.name), type, category: type, menus: stores.length, products: num(b.product_count) || (links[b.slug] ? links[b.slug].products.length : 0), states, blurb: (b.description || '').replace(/\s+/g, ' ').slice(0, 140), about, verified: !!b.is_verified, claimed: !!b.is_claimed, logo: b.logo || '', website: b.website || '', social: Object.keys(social).length ? social : null, parent, children: children.length ? children : null, address: b.address || '', city: b.city || '', stateName: b.state || '', country: b.country || '', rating: num(b.rating) || 0, reviews: num(b.review_count) || 0, featured: !!(b.is_verified || b.is_claimed), pic: i % 4, tags: [] });
 });
 
 // ---- strains ----

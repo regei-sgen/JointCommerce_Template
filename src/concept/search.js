@@ -67,7 +67,7 @@ const typeWord = { hyb: 'hybrid', sat: 'sativa', ind: 'indica' };
 const FIELDS = {
   dispensaries: (d) => [d.name, d.city, ...(d.tags || [])],
   deals: (d) => [d.name, d.meta, d.store, d.category],
-  brands: (b) => [b.name, b.category, ...(b.tags || []), ...(b.states || []), b.blurb],
+  brands: (b) => [b.name, b.type || b.category, b.city, b.stateName, ...(b.tags || []), ...(b.states || []), b.blurb],
   products: (p) => [p.name, p.meta, p.category, p.store],
   strains: (s) => [s.name, s.lineage, ...(s.effects || []), typeWord[s.type]],
 };
@@ -75,17 +75,26 @@ const FIELDS = {
 export const SORTS = {
   dispensaries: { nearest: ['Nearest', (a, b) => (a.miles ?? 1e9) - (b.miles ?? 1e9)], rated: ['Top rated', (a, b) => b.rating - a.rating], stocked: ['Most products', (a, b) => b.products - a.products] },
   deals: { pct: ['Biggest discount', (a, b) => b.pct - a.pct], price: ['Lowest price', (a, b) => a.price - b.price] },
-  brands: { menus: ['Most menus', (a, b) => b.menus - a.menus], name: ['A to Z', (a, b) => a.name.localeCompare(b.name)] },
+  brands: {
+    rated: ['Highest rated', (a, b) => (b.rating || 0) - (a.rating || 0) || (b.reviews || 0) - (a.reviews || 0)],
+    products: ['Most products', (a, b) => (b.products || 0) - (a.products || 0)],
+    reviews: ['Most reviewed', (a, b) => (b.reviews || 0) - (a.reviews || 0)],
+    menus: ['Most menus', (a, b) => b.menus - a.menus],
+    name: ['Name A to Z', (a, b) => a.name.localeCompare(b.name)],
+    nameDesc: ['Name Z to A', (a, b) => b.name.localeCompare(a.name)],
+  },
   products: { price: ['Lowest price', (a, b) => a.price - b.price], pct: ['Biggest discount', (a, b) => (b.pct || 0) - (a.pct || 0)] },
   strains: { menus: ['Most menus', (a, b) => b.menus - a.menus], thc: ['Highest THC', (a, b) => b.thc - a.thc], name: ['A to Z', (a, b) => a.name.localeCompare(b.name)] },
 };
 export const defaultSort = (cat) => Object.keys(SORTS[cat])[0];
 
-// Filter chips per category: [key, label, predicate].
+// Filter chips per category: [key, label, predicate, mode?]. A chip with mode 'and' must pass on its
+// own; the remaining chips of the category combine per FILTER_MODE.
+const BRAND_TYPES = ['Cannabis', 'CBD', 'Edibles', 'Hemp', 'Vape'];
 export const FILTERS = {
   dispensaries: [['open', 'Open now', (d) => d.open], ['delivery', 'Delivery', (d) => d.delivery], ['verified', 'Verified', (d) => d.verified]],
   deals: ['Flower', 'Pre-rolls', 'Vapes', 'Edibles', 'Concentrates'].map((c) => [c.toLowerCase(), c, (d) => d.category === c]),
-  brands: ['Flower', 'Pre-rolls', 'Vapes', 'Edibles', 'Concentrates'].map((c) => [c.toLowerCase(), c, (b) => b.category === c]),
+  brands: [...BRAND_TYPES.map((c) => [c.toLowerCase(), c, (b) => (b.type || b.category) === c]), ['verified', 'Verified', (b) => b.verified, 'and']],
   products: ['Flower', 'Pre-rolls', 'Vapes', 'Edibles', 'Concentrates'].map((c) => [c.toLowerCase(), c, (p) => p.category === c]),
   strains: [['hyb', 'Hybrid', (s) => s.type === 'hyb'], ['sat', 'Sativa', (s) => s.type === 'sat'], ['ind', 'Indica', (s) => s.type === 'ind'], ['new', 'New on menus', (s) => s.isNew]],
 };
@@ -117,7 +126,9 @@ export function search(q, cat = 'all', { filters = [], sort, origin } = {}) {
   for (const k of keys) {
     const sortFn = (sort && Object.hasOwn(SORTS[k], sort) ? SORTS[k][sort] : SORTS[k][defaultSort(k)])[1];
     const active = FILTERS[k].filter(([key]) => filters.includes(key));
-    const passes = (item) => !active.length || (FILTER_MODE[k] === 'and' ? active.every(([, , p]) => p(item)) : active.some(([, , p]) => p(item)));
+    const must = active.filter(([, , , mode]) => mode === 'and');
+    const rest = active.filter(([, , , mode]) => mode !== 'and');
+    const passes = (item) => must.every(([, , p]) => p(item)) && (!rest.length || (FILTER_MODE[k] === 'and' ? rest.every(([, , p]) => p(item)) : rest.some(([, , p]) => p(item))));
     const ranked = (k === 'dispensaries' ? SOURCE[k].map((d) => located(d, origin)) : SOURCE[k])
       .filter(passes)
       .map((item) => ({ item, s: terms.length ? score(FIELDS[k](item), terms) : 1 }))

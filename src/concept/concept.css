@@ -587,6 +587,19 @@
 .finder-more .muted { font-weight: 600; }
 @media (prefers-reduced-motion: reduce) { .pin-dot { transition: none; } }
 
+/* ===== brands: logo badges, home tile logos, selected-brand facts ===== */
+.bd-logo { position: relative; overflow: hidden; background: #fff; color: var(--muted); }
+.bd-logo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; padding: 4px; background: #fff; }
+.hm-art-logo { background: #fff; overflow: hidden; }
+.hm-art-logo .hm-tile-initial { color: var(--muted); }
+.hm-tile-logo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; padding: 14%; background: #fff; border-radius: inherit; }
+.finder-brand { display: flex; flex-direction: column; gap: 8px; }
+.finder-about { margin: 0; font-size: 13.5px; line-height: 1.5; color: var(--ink-2); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.finder-links { margin: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.finder-links .chip { gap: 5px; color: var(--ink); text-decoration: none; }
+.finder-links .chip:hover { border-color: var(--cx-line-strong); background: var(--cx-tint); }
+.finder-links .chip .muted { font-weight: 500; }
+
 /* ===== breakpoints ===== */
 @media (max-width: 1200px) {
   .cx { --sb: 76px; }

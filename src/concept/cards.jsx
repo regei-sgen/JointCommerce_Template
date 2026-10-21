@@ -13,6 +13,19 @@ export function Badge({ children, tone = 'ink', className = '' }) {
   return <span className={`bd bd-${tone} ${className}`}>{children}</span>;
 }
 
+// Brand badge: the brand's logo when the data has one (the initial stays underneath and shows if
+// the image fails), otherwise the initial alone.
+export function BrandMark({ b, className = '' }) {
+  return (
+    <Badge tone="mint" className={`${b.logo ? 'bd-logo' : ''} ${className}`}>
+      {b.initial}
+      {b.logo && <img src={b.logo} alt="" loading="lazy" decoding="async" onError={(e) => { e.currentTarget.remove(); }} />}
+    </Badge>
+  );
+}
+
+const brandPlace = (b) => (b.city ? `${b.city}${b.states && b.states[0] ? `, ${b.states[0]}` : ''}` : (b.states || []).join(', ') || b.country || '');
+
 function Row({ to, hot, onHover, id, badge, title, meta, foot, aside, i = 0, featured }) {
   const over = onHover ? () => onHover(id) : undefined;
   const out = onHover ? () => onHover(null) : undefined;
@@ -46,10 +59,10 @@ export function BrandRow({ b, i, hot, onHover }) {
   return (
     <Row
       to={itemLink('brands', b)} id={b.slug} hot={hot} onHover={onHover} i={i} featured={b.featured}
-      badge={<Badge tone="mint">{b.initial}</Badge>}
+      badge={<BrandMark b={b} />}
       title={b.name}
-      meta={<><Tag className="ic14" />{b.category}<span className="dot" />{b.products} products</>}
-      foot={<><span className="chip chip-sm"><Store className="ic14" />{b.menus} menus</span><span className="muted small">{b.states.join(' · ')}</span></>}
+      meta={<><Tag className="ic14" />{b.type || b.category}<span className="dot" />{b.products} products{b.reviews > 0 && <><span className="dot" /><Star className="ic14" /><strong>{b.rating.toFixed(1)}</strong> ({b.reviews})</>}</>}
+      foot={<>{b.verified && <span className="chip chip-sm"><ShieldCheck className="ic14" />Verified</span>}<span className="chip chip-sm"><Store className="ic14" />{b.menus} menus</span><span className="muted small">{brandPlace(b)}</span></>}
     />
   );
 }
@@ -103,14 +116,14 @@ export function ResultRow({ cat, item, ...rest }) {
 // Badge + one-line subtitle for an item of any category (typeahead rows, selected-item header).
 export function ItemBadge({ cat, item, className }) {
   if (cat === 'dispensaries') return <Badge tone="ink" className={className}>{item.code}</Badge>;
-  if (cat === 'brands') return <Badge tone="mint" className={className}>{item.initial}</Badge>;
+  if (cat === 'brands') return <BrandMark b={item} className={className} />;
   if (cat === 'strains') return <Badge tone={item.type} className={className}>{typeLabel[item.type][0]}</Badge>;
   if (item.pct) return <Badge tone="teal" className={className}>-{item.pct}%</Badge>;
   return <Badge tone={item.type || 'mint'} className={className}>{item.category[0]}</Badge>;
 }
 export function itemSubtitle(cat, item) {
   if (cat === 'dispensaries') return `${item.city} · ${fmtMiles(item.miles)} mi · ${item.status}`;
-  if (cat === 'brands') return `${item.category} · ${item.menus} menus · ${item.states.join(', ')}`;
+  if (cat === 'brands') return [item.type || item.category, item.verified ? 'Verified' : null, item.menus > 0 ? `${item.menus} menus` : null, brandPlace(item)].filter(Boolean).join(' · ');
   if (cat === 'strains') return `${typeLabel[item.type]} · ${item.lineage} · THC ${item.thc}%`;
   return `${item.meta} · ${item.store}`;
 }

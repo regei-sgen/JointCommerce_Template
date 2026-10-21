@@ -82,6 +82,7 @@ export default function Finder({ cat, place, home = false }) {
                   <p className="finder-sub">{itemSubtitle(cat, selected)}</p>
                 </div>
               </div>
+              {cat === 'brands' && <BrandDetail b={selected} />}
               <p className="finder-sub"><Store className="ic14" /> Where to buy · <em>{n}</em> {n === 1 ? 'dispensary' : 'dispensaries'} near {loc}</p>
             </>
           ) : (
@@ -128,6 +129,30 @@ export default function Finder({ cat, place, home = false }) {
         <div className="finder-legend"><i />{points.length} on the map<span className="muted"> · <Pin className="ic14" />{loc}</span></div>
       </div>
     </section>
+  );
+}
+
+// Brand facts from the snapshot: first About paragraph, outbound links, parent and child brands.
+const SOCIAL = [['instagram', 'Instagram'], ['facebook', 'Facebook'], ['twitter', 'X'], ['youtube', 'YouTube'], ['linkedin', 'LinkedIn']];
+function BrandDetail({ b }) {
+  const about = (b.about && b.about[0]) || b.blurb || '';
+  const links = [b.website ? ['Website', b.website] : null, ...SOCIAL.map(([k, label]) => (b.social && b.social[k] ? [label, b.social[k]] : null))].filter(Boolean);
+  const kin = [...(b.parent ? [{ ...b.parent, rel: 'Part of' }] : []), ...((b.children || []).map((c) => ({ ...c, rel: 'Also' })))];
+  if (!about && !links.length && !kin.length) return null;
+  return (
+    <div className="finder-brand">
+      {about && <p className="finder-about">{about}</p>}
+      {links.length > 0 && (
+        <p className="finder-links">
+          {links.map(([label, href]) => <a key={label} href={href} target="_blank" rel="noopener noreferrer" className="chip chip-sm">{label}</a>)}
+        </p>
+      )}
+      {kin.length > 0 && (
+        <p className="finder-links">
+          {kin.map((k) => <Link key={k.slug} to={itemLink('brands', k)} className="chip chip-sm"><span className="muted">{k.rel}</span>{k.name}</Link>)}
+        </p>
+      )}
+    </div>
   );
 }
 

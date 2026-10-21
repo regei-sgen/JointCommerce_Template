@@ -70,9 +70,12 @@ export default function HomePage() {
       {brands.length > 0 && <Row title="Featured brands" to="/brands">
         {brands.map((b) => (
           <Link key={b.slug} to={itemLink('brands', b)} className="hm-tile">
-            <span className={`hm-tile-art hm-art-${b.pic % 4}`}><span className="hm-tile-initial">{b.initial}</span></span>
+            <span className={`hm-tile-art hm-art-${(b.pic || 0) % 4}${b.logo ? ' hm-art-logo' : ''}`}>
+              <span className="hm-tile-initial">{b.initial}</span>
+              {b.logo && <img className="hm-tile-logo" src={b.logo} alt="" loading="lazy" decoding="async" onError={(e) => { e.currentTarget.remove(); }} />}
+            </span>
             <span className="hm-tile-name">{b.name}</span>
-            <span className="hm-tile-meta"><Store className="ic14" />{b.menus} menus<span className="dot" />{b.category}</span>
+            <span className="hm-tile-meta"><Tag className="ic14" />{b.type || b.category}{b.states && b.states[0] && <><span className="dot" />{b.states.join(', ')}</>}</span>
           </Link>
         ))}
       </Row>}
