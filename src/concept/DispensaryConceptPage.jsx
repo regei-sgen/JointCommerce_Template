@@ -140,7 +140,7 @@ function Store_({ d, details, slug }) {
 
         <aside className="dp-side">
           <div className="dp-card dp-map" data-reveal>
-            <LeafletMap className="dp-leaflet" tiles="night" pins="dom" center={[d.lat, d.lng]} zoom={13} interactive={false} eager points={[d]} ariaLabel={`Map of ${d.name}`} />
+            <LeafletMap className="dp-leaflet" tiles="streets" pins="dom" center={[d.lat, d.lng]} zoom={13} interactive={false} eager points={[d]} ariaLabel={`Map of ${d.name}`} />
           </div>
           <div className="dp-card" data-reveal style={{ '--i': 1 }}>
             <h2 className="dp-h3"><Clock className="ic18" />Hours</h2>

@@ -551,7 +551,7 @@
 .tiles-streets { filter: none; }
 .tiles-brand { filter: url(#jc-recolor-brand); }
 .tiles-night { filter: url(#jc-recolor-night); }
-.finder .leaflet-container, .dp-map .leaflet-container { background: #d4f0e5; } /* behind tiles still loading: the duotone's light end */
+.finder .leaflet-container, .dp-map .leaflet-container { background: #f0e8c8; } /* behind tiles still loading: the street tiles' land colour */
 .pin { width: 44px; height: 44px; margin: 0; }
 .pin > * { position: absolute; left: 50%; top: 50%; translate: -50% -50%; border-radius: 50%; }
 .pin-halo { width: 40px; height: 40px; background: rgba(11, 43, 38, 0.08); opacity: 0; transition: opacity 0.25s; animation: none; }
