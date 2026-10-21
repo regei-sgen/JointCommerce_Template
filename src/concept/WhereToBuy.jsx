@@ -49,7 +49,7 @@ export default function WhereToBuy({ place, onLocation }) {
     const res = search(text, 'all', { origin: place });
     const order = [cat, ...CAT_KEYS.filter((k) => k !== cat)];
     return order.flatMap((k) => res[k].slice(0, k === cat ? 4 : 2).map((item) => ({ k, item })));
-  }, [text, cat]);
+  }, [text, cat, place]);
   const showDrop = open && text.trim().length >= 2;
 
   const pick = ({ k, item }) => { navigate(itemLink(k, item)); setOpen(false); setIdx(-1); input.current?.blur(); };

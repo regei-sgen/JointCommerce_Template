@@ -42,12 +42,14 @@ export default function Shell() {
     return () => document.documentElement.classList.remove('cx-on');
   }, []);
 
-  // A typed place resolves against the known list; an unknown string keeps the previous
-  // coordinates and only changes the label. Geolocation hands over coordinates directly.
+  // A typed place resolves against the known list; an unknown string is rejected (the modal
+  // reports it). Geolocation hands over coordinates directly.
   const applyPlace = (v) => {
-    if (v && typeof v === 'object') { setPlace({ name: v.name, lat: v.lat, lng: v.lng }); return; }
+    if (v && typeof v === 'object') { setPlace({ name: v.name, lat: v.lat, lng: v.lng }); return true; }
     const hit = resolvePlace(v);
-    setPlace((prev) => (hit ? hit : { ...prev, name: String(v) }));
+    if (!hit) return false;
+    setPlace(hit);
+    return true;
   };
 
   return (

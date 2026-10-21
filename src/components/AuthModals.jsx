@@ -14,14 +14,25 @@ export function LocationModal({ open, onClose, onSet }) {
   const [q, setQ] = useState('');
   const [radius, setRadius] = useState('10 mi');
   const [locating, setLocating] = useState(false);
+  const [err, setErr] = useState(null);
   const locate = () => {
-    if (!navigator.geolocation) return;
+    if (locating) return;
+    if (!navigator.geolocation) { setErr('This browser does not share its location.'); return; }
+    setErr(null);
     setLocating(true);
     navigator.geolocation.getCurrentPosition(
       (pos) => { setLocating(false); onSet?.({ name: 'Current location', lat: pos.coords.latitude, lng: pos.coords.longitude }); onClose(); },
-      () => setLocating(false),
+      (e) => { setLocating(false); setErr(e && e.code === 1 ? 'Location access was denied. Type a city instead.' : 'Could not read your location. Type a city instead.'); },
       { timeout: 8000 },
     );
+  };
+  const submit = () => {
+    const v = q.trim();
+    if (!v) { onClose(); return; }
+    const ok = onSet ? onSet(v) : true;
+    if (ok === false) { setErr(`“${v}” is not a place this concept knows. Try a city like “Boston, MA”.`); return; }
+    setErr(null);
+    onClose();
   };
   return (
     <Modal open={open} onClose={onClose} eyebrow={<><Pin />Location</>} title="Where are you shopping?">
@@ -32,7 +43,8 @@ export function LocationModal({ open, onClose, onSet }) {
           <Search className="ic18" />
           <input id="loc-q" type="text" placeholder="City, zip code, or address" value={q} onChange={(e) => setQ(e.target.value)} autoComplete="off" />
         </div>
-        <button type="button" className="btn ghost modal-locate" onClick={locate} disabled={locating}><Navigate />{locating ? 'Locating…' : 'Use my current location'}</button>
+        <button type="button" className="btn ghost modal-locate" onClick={locate} aria-busy={locating}><Navigate />{locating ? 'Locating…' : 'Use my current location'}</button>
+        {err && <p className="modal-sub modal-err" role="status">{err}</p>}
         <div className="modal-label">Popular near you</div>
         <div className="modal-chips">
           {CITIES.map((c) => (
@@ -45,7 +57,7 @@ export function LocationModal({ open, onClose, onSet }) {
             <button key={r} type="button" role="radio" aria-checked={radius === r} className={radius === r ? 'on' : ''} onClick={() => setRadius(r)}>{r}</button>
           ))}
         </div>
-        <button type="submit" className="btn modal-submit" onClick={() => { if (q.trim() && onSet) onSet(q.trim()); onClose(); }}><Pin />Set location<ChevronRight className="ic14 ic-after" /></button>
+        <button type="submit" className="btn modal-submit" onClick={submit}><Pin />Set location<ChevronRight className="ic14 ic-after" /></button>
       </form>
     </Modal>
   );

@@ -206,10 +206,11 @@ export const dispensaryDetails = {
   },
 };
 
-export function getDispensary(slug) {
+// `fallback` (optional) is a listing record used as the base when the slug is not in data.js.
+export function getDispensary(slug, fallback) {
   if (dispensaryDetails[slug]) return dispensaryDetails[slug];
-  const base = dispensaries.find((d) => d.slug === slug) || heroSlides.find((d) => d.slug === slug);
-  const point = heroSlides.find((d) => d.slug === slug) || mapPoints.find((p) => base && p.name === base.name && p.city === base.city);
+  const base = dispensaries.find((d) => d.slug === slug) || heroSlides.find((d) => d.slug === slug) || fallback;
+  const point = heroSlides.find((d) => d.slug === slug) || mapPoints.find((p) => base && p.name === base.name && p.city === base.city) || (base && typeof base.lat === 'number' ? base : null);
   const template = dispensaryDetails.hashery;
   const name = base ? base.name : slug.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
   return {

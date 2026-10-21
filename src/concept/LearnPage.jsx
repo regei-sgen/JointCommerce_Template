@@ -1,6 +1,5 @@
-import { Link } from 'react-router-dom';
 import { allArticles } from '../listingData.js';
-import { Book, ChevronRight } from '../icons.jsx';
+import { Book } from '../icons.jsx';
 import { TypeChip } from '../components/ui.jsx';
 import { useReveal } from '../hooks/useReveal.js';
 import { Badge } from './cards.jsx';
@@ -19,14 +18,13 @@ export default function LearnPage() {
       <div className="col">
         <div className="col-list">
           {allArticles.map((a, i) => (
-            <Link key={a.title} to="/blog" className="frow" data-reveal style={{ '--i': i % 8 }}>
+            <div key={a.title} className="frow frow-static" data-reveal style={{ '--i': i % 8 }}>
               <Badge tone={a.type}>{a.kind[0]}</Badge>
               <span className="frow-copy">
                 <span className="frow-title">{a.title}</span>
                 <span className="frow-meta"><TypeChip type={a.type} small /><span className="dot" />{a.kind}<span className="dot" />{a.meta}</span>
               </span>
-              <span className="frow-aside"><ChevronRight className="ic14 frow-go" /></span>
-            </Link>
+            </div>
           ))}
         </div>
       </div>

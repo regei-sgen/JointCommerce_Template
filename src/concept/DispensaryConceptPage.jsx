@@ -21,7 +21,8 @@ export default function DispensaryConceptPage() {
   const { place } = useOutletContext();
   const d = find('dispensaries', slug, place);
   if (!d) return <Navigate to="/concept/dispensaries" replace />;
-  return <Store_ d={d} details={getDispensary(slug)} slug={slug} />;
+  // key={slug}: a slug change remounts the body (filter state, side map, reveals).
+  return <Store_ key={slug} d={d} details={getDispensary(slug, d)} slug={slug} />;
 }
 
 function Store_({ d, details, slug }) {
@@ -46,7 +47,7 @@ function Store_({ d, details, slug }) {
     <div className="dp">
       <nav className="dp-crumbs" aria-label="Breadcrumb"><Link to="/concept/dispensaries"><ChevronLeft className="ic14" />Dispensaries</Link></nav>
 
-      <header className="dp-head" data-reveal>
+      <div className="dp-head" data-reveal>
         <Badge tone="ink" className="dp-badge">{d.code}</Badge>
         <div className="dp-copy">
           <h1 className="dp-title">{d.name}{d.verified && <span className="chip dp-verified"><ShieldCheck className="ic14" />Verified</span>}</h1>
@@ -58,14 +59,14 @@ function Store_({ d, details, slug }) {
           <div className="dp-contact">
             <span><Pin className="ic14" />{details.address}, {details.zip}</span>
             <span><Phone className="ic14" />{details.phone}</span>
-            <a href="#"><Globe className="ic14" />{details.website}</a>
+            <a href={`https://${details.website}`} target="_blank" rel="noreferrer"><Globe className="ic14" />{details.website}<span className="srl"> (opens in a new tab)</span></a>
           </div>
         </div>
         <div className="dp-actions">
           <a href="#menu" className="btn ink sm"><Store />Shop menu</a>
-          <a href={`https://www.google.com/maps/dir/?api=1&destination=${d.lat},${d.lng}`} target="_blank" rel="noreferrer" className="btn ghost sm"><NavIcon />Directions</a>
+          <a href={`https://www.google.com/maps/dir/?api=1&destination=${d.lat},${d.lng}`} target="_blank" rel="noreferrer" className="btn ghost sm"><NavIcon />Directions<span className="srl"> (opens in a new tab)</span></a>
         </div>
-      </header>
+      </div>
 
       <div className="dp-grid">
         <main className="dp-main">
@@ -100,7 +101,7 @@ function Store_({ d, details, slug }) {
                   <span className="menu-buy">
                     <span className="price"><strong>${m.price}</strong>{m.was && <s>${m.was}</s>}</span>
                     {typeof m.thc === 'number' && <span className="thc">THC {m.thc}%</span>}
-                    <button type="button" className="btn sm menu-add"><Check className="ic14" />Add</button>
+                    <button type="button" className="btn sm menu-add" aria-label={`Add ${m.name}`}><Check className="ic14" />Add</button>
                   </span>
                 </div>
               ))}
@@ -134,14 +135,14 @@ function Store_({ d, details, slug }) {
             <LeafletMap className="dp-leaflet" tiles="light" center={[d.lat, d.lng]} zoom={13} interactive={false} eager points={[d]} ariaLabel={`Map of ${d.name}`} />
           </div>
           <div className="dp-card" data-reveal style={{ '--i': 1 }}>
-            <h3 className="dp-h3"><Clock className="ic18" />Hours</h3>
+            <h2 className="dp-h3"><Clock className="ic18" />Hours</h2>
             <ul className={`dhours${week ? ' open' : ''}`}>
               {details.hours.map((h) => <li key={h.day} className={h.day === today.day ? 'today' : ''}><span>{h.day}{h.day === today.day && <span className="chip chip-sm">Today</span>}</span><span>{h.open} – {h.close}</span></li>)}
             </ul>
             <button type="button" className="link link-sm dmore" onClick={() => setWeek((v) => !v)}>{week ? 'Hide week' : 'Show full week'}<ChevronDown className={`ic14 ic-after${week ? ' flip' : ''}`} /></button>
           </div>
           <div className="dp-card" data-reveal style={{ '--i': 2 }}>
-            <h3 className="dp-h3"><Store className="ic18" />Services</h3>
+            <h2 className="dp-h3"><Store className="ic18" />Services</h2>
             <div className="dp-chips">
               <span className="chip"><Store className="ic14" />Pickup</span>
               {d.delivery && <span className="chip"><Truck className="ic14" />Delivery</span>}
@@ -150,7 +151,7 @@ function Store_({ d, details, slug }) {
             </div>
           </div>
           <div className="dp-card" data-reveal style={{ '--i': 3 }}>
-            <h3 className="dp-h3"><Pin className="ic18" />Contact</h3>
+            <h2 className="dp-h3"><Pin className="ic18" />Contact</h2>
             <ul className="dcontact">
               <li><Pin className="ic14" /><span>{details.address}<span className="muted">{details.zip}</span></span></li>
               <li><Phone className="ic14" /><span>{details.phone}</span></li>
