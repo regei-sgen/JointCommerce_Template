@@ -7,6 +7,8 @@ const HomePage = lazy(() => import('./concept/HomePage.jsx'));
 const CategoryPage = lazy(() => import('./concept/CategoryPage.jsx'));
 const DispensaryPage = lazy(() => import('./concept/DispensaryConceptPage.jsx'));
 const LearnPage = lazy(() => import('./concept/LearnPage.jsx'));
+const CheckoutPage = lazy(() => import('./concept/CheckoutPage.jsx'));
+const OrderDonePage = lazy(() => import('./concept/CheckoutPage.jsx').then((m) => ({ default: m.OrderDonePage })));
 
 // Jump to the top on every route change (the browser keeps the old scroll position otherwise).
 function ScrollToTop() {
@@ -25,6 +27,8 @@ export default function App() {
             <Route index element={<HomePage />} />
             <Route path="learn" element={<LearnPage />} />
             <Route path="blog" element={<Navigate to="/learn" replace />} />
+            <Route path="checkout" element={<CheckoutPage />} />
+            <Route path="checkout/done/:id" element={<OrderDonePage />} />
             <Route path="dispensaries/:slug" element={<DispensaryPage />} />
             <Route path=":cat" element={<CategoryPage />} />
             <Route path=":cat/in/:country/:state" element={<CategoryPage />} />

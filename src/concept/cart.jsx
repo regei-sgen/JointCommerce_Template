@@ -4,7 +4,7 @@
 // menu on its page.
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Cart as CartIcon, Close, Check, Store } from '../icons.jsx';
 
 const KEY = 'jc.cart';
@@ -90,6 +90,7 @@ export function AddButton({ item, className = '', label = 'Add' }) {
 
 function CartDrawer() {
   const cart = useCart();
+  const navigate = useNavigate();
   const panel = useRef(null);
   const opener = useRef(null);
   const { open, closeCart } = cart;
@@ -147,8 +148,9 @@ function CartDrawer() {
             <div className="cart-sub"><span>Subtotal</span><strong>{money(cart.subtotal)}</strong></div>
             <p className="muted small">Taxes and pickup details are set by each store when you order.</p>
             <div className="cart-actions">
-              <button type="button" className="btn ghost sm" onClick={cart.clear}>Clear cart</button>
-              <button type="button" className="btn ink sm" onClick={closeCart}>Keep browsing</button>
+              <button type="button" className="btn ghost sm" onClick={closeCart}>Keep browsing</button>
+              <button type="button" className="link link-sm cart-clear" onClick={cart.clear}>Clear cart</button>
+              <button type="button" className="btn ink sm" onClick={() => { closeCart(); navigate('/checkout'); }}>Checkout</button>
             </div>
           </footer>
         )}
