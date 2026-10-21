@@ -5,6 +5,8 @@ import { setData } from './search.js';
 import { setPlaces } from './geo.js';
 
 const BASE = `${import.meta.env.BASE_URL}data/jc/`;
+// Set by `define` in vite.config.js; a fixed fallback keeps the module loadable outside Vite.
+const VERSION = typeof __DATA_VERSION__ === 'string' ? __DATA_VERSION__ : '0';
 const FILES = ['dispensaries', 'brands', 'strains', 'products', 'deals', 'menus', 'embeds', 'details', 'links', 'geo', 'meta'];
 
 let promise = null;
@@ -13,7 +15,7 @@ export function loadData() {
   promise = (async () => {
     try {
       const got = await Promise.all(FILES.map(async (n) => {
-        const r = await fetch(`${BASE}${n}.json`);
+        const r = await fetch(`${BASE}${n}.json?v=${VERSION}`);
         if (!(r.headers.get('content-type') || '').includes('json')) throw new Error(`${n}.json not json`);
         if (!r.ok) throw new Error(`${n}.json ${r.status}`);
         return r.json();
