@@ -8,6 +8,7 @@ import { useReveal } from '../hooks/useReveal.js';
 import { find, search, menuFor, embedFor, dealsAt, strainsAt, brandsAt, detailsFor, isDemo, itemLink } from './search.js';
 import { fmtMiles } from './geo.js';
 import { Badge, DealRow, StrainRow, BrandRow } from './cards.jsx';
+import { AddButton } from './cart.jsx';
 
 const TODAY = new Date().toLocaleDateString('en-US', { weekday: 'long' });
 const CATS = ['Flower', 'Pre-rolls', 'Vapes', 'Edibles', 'Concentrates'];
@@ -128,7 +129,7 @@ function Store_({ d, details, slug, mapMode, setMapMode }) {
                   <span className="menu-buy">
                     <span className="price"><strong>${m.price}</strong>{m.was && <s>${m.was}</s>}</span>
                     {typeof m.thc === 'number' && <span className="thc">THC {m.thc}%</span>}
-                    <button type="button" className="btn sm menu-add" aria-label={`Add ${m.name}`}><Check className="ic14" />Add</button>
+                    <AddButton item={{ ...m, store: d.name, storeSlug: slug }} />
                   </span>
                 </div>
               ))}

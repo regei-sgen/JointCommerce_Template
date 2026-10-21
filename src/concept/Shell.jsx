@@ -3,6 +3,7 @@ import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import Wordmark from '../components/Wordmark.jsx';
 import { Home, Store, Truck, Tag, Star, Grid, Leaf, Book, User } from '../icons.jsx';
 import { LocationModal, LoginModal, SignupModal } from '../components/AuthModals.jsx';
+import { CartProvider, CartButton } from './cart.jsx';
 import WhereToBuy, { useFinderCat } from './WhereToBuy.jsx';
 import { DEFAULT_PLACE, resolvePlace, placePath } from './geo.js';
 import { loadData } from './jcData.js';
@@ -91,6 +92,7 @@ export default function Shell() {
   };
 
   return (
+    <CartProvider>
     <div className="cx">
       <aside className="cx-sb">
         <Link to="/" className="cx-brand" aria-label="JointCommerce home">
@@ -110,6 +112,7 @@ export default function Shell() {
           <Link to="/" className="cx-top-brand" aria-label="JointCommerce home"><img className="cx-top-mark" src={MARK} alt="" width="36" height="36" /><Wordmark height={18} /></Link>
           <WhereToBuy place={place} onLocation={() => setModal('location')} />
           <div className="cx-acct">
+            <CartButton />
             <button type="button" className="btn plain sm" onClick={() => setModal('login')}><User className="ic14" /><span className="nav-login-text">Log in</span></button>
             <button type="button" className="btn ink sm" onClick={() => setModal('signup')}>Sign up</button>
           </div>
@@ -125,5 +128,6 @@ export default function Shell() {
       <LoginModal open={modal === 'login'} onClose={hide} onSwitch={() => setModal('signup')} />
       <SignupModal open={modal === 'signup'} onClose={hide} onSwitch={() => setModal('login')} />
     </div>
+    </CartProvider>
   );
 }

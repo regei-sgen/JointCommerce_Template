@@ -5,6 +5,7 @@ import { useReveal } from '../hooks/useReveal.js';
 import { Map as MapIcon, ChevronLeft, Store, Pin, Close } from '../icons.jsx';
 import { search, find, stockedAt, catInfo, FILTERS, SORTS, defaultSort, itemLink, DATA, emptyFilters } from './search.js';
 import { ResultRow, DispensaryRow, ItemBadge, itemSubtitle } from './cards.jsx';
+import { AddButton } from './cart.jsx';
 
 // List + map for one category. State lives in the URL: q (text), f (filter keys, repeatable),
 // sort, sel (selected item slug → the panel lists the dispensaries that carry it).
@@ -83,6 +84,7 @@ export default function Finder({ cat, place, home = false }) {
                 <div className="finder-sel-copy">
                   <h2 className="finder-title">{selected.name}</h2>
                   <p className="finder-sub">{itemSubtitle(cat, selected)}</p>
+                  {(cat === 'products' || cat === 'deals') && <span className="finder-sel-add"><AddButton item={selected} label="Add to cart" /></span>}
                 </div>
               </div>
               {cat === 'brands' && <BrandDetail b={selected} />}

@@ -6,6 +6,7 @@ import { LiveDot, TypeChip } from '../components/ui.jsx';
 import { typeLabel } from '../data.js';
 import { itemLink } from './search.js';
 import { fmtMiles } from './geo.js';
+import { AddButton } from './cart.jsx';
 
 const pct = (n) => `${Math.round(n)}%`;
 
@@ -26,10 +27,10 @@ export function BrandMark({ b, className = '' }) {
 
 const brandPlace = (b) => (b.city ? `${b.city}${b.states && b.states[0] ? `, ${b.states[0]}` : ''}` : (b.states || []).join(', ') || b.country || '');
 
-function Row({ to, hot, onHover, id, badge, title, meta, foot, aside, i = 0, featured }) {
+function Row({ to, hot, onHover, id, badge, title, meta, foot, aside, i = 0, featured, action }) {
   const over = onHover ? () => onHover(id) : undefined;
   const out = onHover ? () => onHover(null) : undefined;
-  return (
+  const link = (
     <Link to={to} className={`frow${hot ? ' hot' : ''}${featured ? ' featured' : ''}`} data-reveal style={{ '--i': i % 8 }}
       onMouseEnter={over} onMouseLeave={out} onFocus={over} onBlur={out}>
       {badge}
@@ -41,6 +42,8 @@ function Row({ to, hot, onHover, id, badge, title, meta, foot, aside, i = 0, fea
       <span className="frow-aside">{aside}<ChevronRight className="ic14 frow-go" /></span>
     </Link>
   );
+  // `action` (an Add button) sits beside the link, not inside it, so the row stays one anchor.
+  return action ? <div className={`frow-outer${hot ? ' hot' : ''}`}>{link}<span className="frow-action">{action}</span></div> : link;
 }
 
 export function DispensaryRow({ d, i, hot, onHover, to }) {
@@ -83,7 +86,7 @@ export function StrainRow({ s, i, hot, onHover }) {
 export function ProductRow({ p, i, hot, onHover }) {
   return (
     <Row
-      to={itemLink('products', p)} id={p.slug} hot={hot} onHover={onHover} i={i} featured={p.featured}
+      to={itemLink('products', p)} id={p.slug} hot={hot} onHover={onHover} i={i} featured={p.featured} action={<AddButton item={p} />}
       badge={p.pct ? <Badge tone="teal">-{p.pct}%</Badge> : <Badge tone={p.type || 'mint'}>{p.category[0]}</Badge>}
       title={p.name}
       meta={p.meta}
@@ -97,7 +100,7 @@ export function DealRow({ d, i, hot, onHover, inStore = false }) {
   const ends = d.ends === 'Tonight' ? 'Ends tonight' : d.ends === 'Ongoing' ? 'Ongoing' : `Ends ${d.ends}`;
   return (
     <Row
-      to={itemLink('deals', d)} id={d.slug} hot={hot} onHover={onHover} i={i} featured={d.featured}
+      to={itemLink('deals', d)} id={d.slug} hot={hot} onHover={onHover} i={i} featured={d.featured} action={<AddButton item={d} />}
       badge={<Badge tone="teal">-{d.pct}%</Badge>}
       title={d.name}
       meta={d.meta}

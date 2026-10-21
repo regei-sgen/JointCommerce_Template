@@ -121,6 +121,13 @@ export const Menu = (p) => (
     <path d="M4 7h16M4 12h16M4 17h16" />
   </Icon>
 );
+export const Cart = (p) => (
+  <Icon {...p}>
+    <path d="M6 8h12l-1 12H7L6 8z" />
+    <path d="M9 8V6a3 3 0 0 1 6 0v2" />
+  </Icon>
+);
+
 export const Close = (p) => (
   <Icon {...p}>
     <path d="M6 6l12 12M18 6L6 18" />
