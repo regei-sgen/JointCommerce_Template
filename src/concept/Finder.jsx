@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useOutletContext, useSearchParams } from 'react-router-dom';
 import LeafletMap from '../components/LeafletMap.jsx';
+import { useMedia, useViewportHeight } from './useMedia.js';
 import { useReveal } from '../hooks/useReveal.js';
 import { Map as MapIcon, ChevronLeft, Store, Pin, Close } from '../icons.jsx';
 import { search, find, stockedAt, catInfo, FILTERS, SORTS, defaultSort, itemLink, DATA, emptyFilters } from './search.js';
@@ -13,6 +14,10 @@ export default function Finder({ cat, place, home = false }) {
   const loc = place.name;
   const { mapMode = false, setMapMode } = useOutletContext() || {};
   const [panelOpen, setPanelOpen] = useState(true); // map mode only: the floating results panel can slide away
+  // Map mode covers part of the map: the floating panel on the left (desktop) or the bottom sheet (phones).
+  const phone = useMedia('(max-width: 640px)');
+  const vh = useViewportHeight();
+  const inset = useMemo(() => (!mapMode ? undefined : phone ? { top: 120, bottom: panelOpen ? Math.round(vh * 0.5) : 0 } : { top: 84, left: panelOpen ? 452 : 0 }), [mapMode, phone, vh, panelOpen]);
   const [params, setParams] = useSearchParams();
   const q = params.get('q') || '';
   const sel = params.get('sel');
@@ -127,7 +132,7 @@ export default function Finder({ cat, place, home = false }) {
       </div>
       <div className="finder-map">
         <LeafletMap
-          key={mapKey} className="finder-leaflet" tiles="streets" pins="dom" eager fit fitControl globeBelow={4} wheel={!home}
+          key={mapKey} className="finder-leaflet" tiles="streets" pins="dom" eager fit fitControl globeBelow={4} wheel={!home} inset={inset}
           onSelect={(pt) => navigate(itemLink('dispensaries', pt))}
           center={[42.3, -71.5]} zoom={8} points={points} hot={hot} focus={focus} focusMode="ensure" flyDuration={0.7}
           ariaLabel={`Map of ${info.label.toLowerCase()} near ${loc}`}

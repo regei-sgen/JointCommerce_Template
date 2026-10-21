@@ -39,6 +39,7 @@ const ATTR = '&copy; <a href="https://www.esri.com/">Esri</a>';
 const ATTR_CARTO = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>';
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const MAX_ZOOM = 16;
+const NO_INSET = { top: 0, right: 0, bottom: 0, left: 0 };
 const keyOf = (pt) => pt.slug || `${pt.name}|${pt.city}`;
 
 /**
@@ -68,6 +69,7 @@ const keyOf = (pt) => pt.slug || `${pt.name}|${pt.city}`;
 export default function LeafletMap({
   className = '', center, zoom = 9, focus, points = [], interactive = true, focusZoom = 11, eager = false,
   hot, fit = false, tiles = 'dark', wheel = false, flyDuration = 1.6, ariaLabel, pins = 'svg', focusMode = 'fly', onSelect, fitControl = false, globeBelow = 0,
+  inset = NO_INSET,
 }) {
   const [zoomLevel, setZoomLevel] = useState(null);
   const [globeCenter, setGlobeCenter] = useState(null);
@@ -77,6 +79,13 @@ export default function LeafletMap({
   const map = useRef(null);
   const markers = useRef(new Map());
   const pendingFocus = useRef(focus);
+  // `inset` = { top, right, bottom, left } px of the container covered by floating panels. Fitting pads by it,
+  // centring puts the target at the centre of the uncovered area, and "ensure" tests the uncovered area.
+  const insetRef = useRef(inset);
+  insetRef.current = { ...NO_INSET, ...(inset || {}) };
+  const visibleOffset = () => { const i = insetRef.current; return L.point((i.right - i.left) / 2, (i.bottom - i.top) / 2); };
+  const centerFor = (m, latlng, z) => m.unproject(m.project(L.latLng(latlng), z).add(visibleOffset()), z);
+  const isVisible = (m, latlng) => { const p = m.latLngToContainerPoint(L.latLng(latlng)); const s = m.getSize(); const i = insetRef.current; const pad = 24; return p.x > i.left + pad && p.x < s.x - i.right - pad && p.y > i.top + pad && p.y < s.y - i.bottom - pad; };
 
   useEffect(() => {
     if (!el.current || map.current) return undefined;
@@ -152,13 +161,14 @@ export default function LeafletMap({
       });
       map.current = m;
       m.on('zoomend moveend', () => { setZoomLevel(m.getZoom()); const c = m.getCenter(); setGlobeCenter([c.lat, c.lng]); });
-      const fitAll = (animate) => { if (points.length) m.fitBounds(L.latLngBounds(points.map((p) => [p.lat, p.lng])), { padding: [48, 48], maxZoom: 12, animate }); };
+      const fitAll = (animate) => { if (points.length) { const i = insetRef.current; m.fitBounds(L.latLngBounds(points.map((p) => [p.lat, p.lng])), { paddingTopLeft: [48 + i.left, 48 + i.top], paddingBottomRight: [48 + i.right, 48 + i.bottom], maxZoom: 12, animate }); } };
       if (fit) fitAll(false);
+      else { const i = insetRef.current; if (i.top || i.right || i.bottom || i.left) m.setView(centerFor(m, m.getCenter(), m.getZoom()), m.getZoom(), { animate: false }); }
       if (fitControl && interactive && points.length) {
         const Ctl = L.Control.extend({ onAdd() { const b = L.DomUtil.create('button', 'map-fit'); b.type = 'button'; b.title = 'Show all'; b.setAttribute('aria-label', 'Show all pins'); b.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>'; L.DomEvent.disableClickPropagation(b); L.DomEvent.on(b, 'click', () => fitAll(!window.matchMedia('(prefers-reduced-motion: reduce)').matches)); return b; } });
         new Ctl({ position: 'topleft' }).addTo(m);
       }
-      if (pendingFocus.current) m.setView([pendingFocus.current.lat, pendingFocus.current.lng], focusZoom, { animate: false });
+      if (pendingFocus.current) m.setView(centerFor(m, [pendingFocus.current.lat, pendingFocus.current.lng], focusZoom), focusZoom, { animate: false });
       applyHot(hot);
       { const c = m.getCenter(); setZoomLevel(m.getZoom()); setGlobeCenter([c.lat, c.lng]); }
       ro = new ResizeObserver(() => m.invalidateSize());
@@ -187,12 +197,12 @@ export default function LeafletMap({
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     const target = [focus.lat, focus.lng];
     if (focusMode === 'ensure') {
-      if (map.current.getBounds().pad(-0.08).contains(target)) return;
-      map.current.panTo(target, { animate: !reduced, duration: flyDuration, easeLinearity: 0.3 });
+      if (isVisible(map.current, target)) return;
+      map.current.panTo(centerFor(map.current, target, map.current.getZoom()), { animate: !reduced, duration: flyDuration, easeLinearity: 0.3 });
       return;
     }
-    if (reduced) map.current.setView(target, focusZoom, { animate: false });
-    else map.current.flyTo(target, focusZoom, { duration: flyDuration, easeLinearity: 0.3 });
+    if (reduced) map.current.setView(centerFor(map.current, target, focusZoom), focusZoom, { animate: false });
+    else map.current.flyTo(centerFor(map.current, target, focusZoom), focusZoom, { duration: flyDuration, easeLinearity: 0.3 });
   }, [focus?.lat, focus?.lng, focusZoom, flyDuration, focusMode]);
 
   const applyHot = (h) => {

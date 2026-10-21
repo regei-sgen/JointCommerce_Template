@@ -3,6 +3,7 @@ import { Link, Navigate, useNavigate, useOutletContext, useParams } from 'react-
 import { typeLabel } from '../data.js';
 import { Pin, Phone, Globe, Star, Clock, Store, ShieldCheck, Truck, Navigate as NavIcon, ChevronLeft, ChevronDown, Tag, Leaf, Info, CreditCard, Banknote, Check, Close } from '../icons.jsx';
 import LeafletMap from '../components/LeafletMap.jsx';
+import { useMedia, useViewportHeight } from './useMedia.js';
 import { LiveDot, TypeChip } from '../components/ui.jsx';
 import { useReveal } from '../hooks/useReveal.js';
 import { find, search, menuFor, embedFor, dealsAt, strainsAt, brandsAt, detailsFor, isDemo, itemLink } from './search.js';
@@ -40,6 +41,9 @@ function Store_({ d, details, slug, mapMode, setMapMode }) {
   const [week, setWeek] = useState(false);
   const [more, setMore] = useState(false);
   const [embedOpen, setEmbedOpen] = useState(false); // a loaded third-party menu widens the map-mode panel
+  const phone = useMedia('(max-width: 640px)');
+  const vh = useViewportHeight();
+  const inset = useMemo(() => (phone ? { top: 120, bottom: Math.round(vh * 0.58) } : { top: 84, left: embedOpen ? 992 : 572 }), [phone, vh, embedOpen]);
   // Read more shows only when the clamped About block overflows. `clamped` starts null (unknown): the block
   // renders clamped, is measured, and only a measured false lifts the clamp. Kept while open.
   const aboutRef = useRef(null);
@@ -62,7 +66,7 @@ function Store_({ d, details, slug, mapMode, setMapMode }) {
     <>
     {mapMode && typeof d.lat === 'number' && (
       <div className={`dp-bgmap${embedOpen ? ' wide' : ''}`}>
-        <LeafletMap className="dp-bgmap-leaflet" tiles="streets" pins="dom" eager points={nearby} hot={d.slug} center={[d.lat, d.lng]} zoom={13} focus={{ lat: d.lat, lng: d.lng }} focusMode="ensure" globeBelow={4} onSelect={(pt) => navigate(itemLink('dispensaries', pt))} ariaLabel={`Map around ${d.name}`} />
+        <LeafletMap className="dp-bgmap-leaflet" tiles="streets" pins="dom" eager points={nearby} hot={d.slug} center={[d.lat, d.lng]} zoom={13} focus={{ lat: d.lat, lng: d.lng }} focusMode="ensure" globeBelow={4} inset={inset} onSelect={(pt) => navigate(itemLink('dispensaries', pt))} ariaLabel={`Map around ${d.name}`} />
         <button type="button" className="map-mode-btn" aria-pressed="true" onClick={() => setMapMode && setMapMode(false)}><Close className="ic14" />Exit map mode</button>
       </div>
     )}
