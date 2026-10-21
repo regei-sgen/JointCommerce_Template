@@ -37,6 +37,9 @@ function Item({ item, className, location, locPath }) {
 }
 
 // Layout: fixed left sidebar (categories), sticky top bar (search tool, location, account), content.
+// Finder routes: /:cat and /:cat/in/:country/:state/:city? (not a store page, not Learn).
+const FINDER_RE = /^\/(dispensaries|deals|brands|products|strains)(\/in\/[^?#]*)?\/?$/;
+
 // `place` ({ name, lat, lng }) is the origin every distance and heading uses.
 export default function Shell() {
   const location = useLocation();
@@ -52,6 +55,20 @@ export default function Shell() {
     document.documentElement.classList.add('cx-on');
     return () => document.documentElement.classList.remove('cx-on');
   }, []);
+
+  // Map mode: on finder routes the map fills the viewport and the chrome floats over it (html.cx-map).
+  // The preference persists in localStorage; Escape leaves it. Store pages and Learn never use it.
+  const [mapPref, setMapPref] = useState(() => { try { return localStorage.getItem('jc.mapMode') === '1'; } catch { return false; } });
+  const onFinder = FINDER_RE.test(location.pathname);
+  const mapMode = mapPref && onFinder;
+  const setMapMode = (v) => { setMapPref(v); try { localStorage.setItem('jc.mapMode', v ? '1' : '0'); } catch { /* storage unavailable */ } };
+  useEffect(() => {
+    document.documentElement.classList.toggle('cx-map', mapMode);
+    if (!mapMode) return undefined;
+    const onKey = (e) => { if (e.key === 'Escape' && !document.querySelector('.modal-open, [role="dialog"]')) setMapMode(false); };
+    window.addEventListener('keydown', onKey);
+    return () => { window.removeEventListener('keydown', onKey); document.documentElement.classList.remove('cx-map'); };
+  }, [mapMode]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // A typed place resolves against the known list; an unknown string is rejected (the modal
   // reports it). Geolocation hands over coordinates directly.
@@ -97,7 +114,7 @@ export default function Shell() {
             <button type="button" className="btn ink sm" onClick={() => setModal('signup')}>Sign up</button>
           </div>
         </header>
-        {ready ? <Outlet context={{ place, setPlace: applyPlace, openLocation: () => setModal('location'), ready }} /> : <div className="cx-loading" role="status" aria-live="polite"><span className="cx-loading-bar" /><span className="srl">Loading</span></div>}
+        {ready ? <Outlet context={{ place, setPlace: applyPlace, openLocation: () => setModal('location'), ready, mapMode, setMapMode }} /> : <div className="cx-loading" role="status" aria-live="polite"><span className="cx-loading-bar" /><span className="srl">Loading</span></div>}
       </div>
 
       <nav className="cx-tabbar" aria-label="Browse">

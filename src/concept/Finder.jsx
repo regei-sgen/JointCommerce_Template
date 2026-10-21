@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useOutletContext, useSearchParams } from 'react-router-dom';
 import LeafletMap from '../components/LeafletMap.jsx';
 import { useReveal } from '../hooks/useReveal.js';
-import { Map as MapIcon, ChevronLeft, Store, Pin } from '../icons.jsx';
+import { Map as MapIcon, ChevronLeft, Store, Pin, Close } from '../icons.jsx';
 import { search, find, stockedAt, catInfo, FILTERS, SORTS, defaultSort, itemLink, DATA, emptyFilters } from './search.js';
 import { ResultRow, DispensaryRow, ItemBadge, itemSubtitle } from './cards.jsx';
 
@@ -10,6 +10,8 @@ import { ResultRow, DispensaryRow, ItemBadge, itemSubtitle } from './cards.jsx';
 // sort, sel (selected item slug → the panel lists the dispensaries that carry it).
 export default function Finder({ cat, place, home = false }) {
   const loc = place.name;
+  const { mapMode = false, setMapMode } = useOutletContext() || {};
+  const [panelOpen, setPanelOpen] = useState(true); // map mode only: the floating results panel can slide away
   const [params, setParams] = useSearchParams();
   const q = params.get('q') || '';
   const sel = params.get('sel');
@@ -70,8 +72,8 @@ export default function Finder({ cat, place, home = false }) {
   const n = selected ? stores.length : all.length;
 
   return (
-    <section className={`finder${home ? ' finder-home' : ''}`} aria-label={`${info.label} near ${loc}`}>
-      <div className="finder-panel">
+    <section className={`finder${home ? ' finder-home' : ''}${mapMode && !panelOpen ? ' panel-closed' : ''}`} aria-label={`${info.label} near ${loc}`}>
+      <div className={`finder-panel${mapMode && !panelOpen ? ' closed' : ''}`}>
         <div className="finder-head">
           {selected ? (
             <>
@@ -129,6 +131,16 @@ export default function Finder({ cat, place, home = false }) {
           ariaLabel={`Map of ${info.label.toLowerCase()} near ${loc}`}
         />
         <div className="finder-legend"><i />{points.length} on the map<span className="muted"> · <Pin className="ic14" />{loc}</span></div>
+        {setMapMode && (
+          <button type="button" className="map-mode-btn" aria-pressed={mapMode} onClick={() => { setMapMode(!mapMode); setPanelOpen(true); }}>
+            {mapMode ? <><Close className="ic14" />Exit map mode</> : <><MapIcon className="ic14" />Map mode</>}
+          </button>
+        )}
+        {mapMode && (
+          <button type="button" className="map-panel-tab" aria-expanded={panelOpen} aria-label={panelOpen ? 'Hide the list' : 'Show the list'} onClick={() => setPanelOpen((v) => !v)}>
+            <ChevronLeft className={`ic14${panelOpen ? '' : ' flip-x'}`} />
+          </button>
+        )}
       </div>
     </section>
   );
