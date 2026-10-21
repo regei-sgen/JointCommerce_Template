@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import LeafletMap from '../components/LeafletMap.jsx';
 import { useReveal } from '../hooks/useReveal.js';
@@ -12,7 +12,8 @@ export default function Finder({ cat, loc, home = false }) {
   const [params, setParams] = useSearchParams();
   const q = params.get('q') || '';
   const sel = params.get('sel');
-  const sort = SORTS[cat][params.get('sort')] ? params.get('sort') : defaultSort(cat);
+  const sortParam = params.get('sort');
+  const sort = sortParam && Object.hasOwn(SORTS[cat], sortParam) ? sortParam : defaultSort(cat);
   const filters = params.getAll('f');
   const set = (patch) => {
     const n = new URLSearchParams(params);
@@ -27,6 +28,8 @@ export default function Finder({ cat, loc, home = false }) {
 
   const list = useMemo(() => search(q, cat, { filters, sort })[cat], [q, cat, filters.join('|'), sort]); // eslint-disable-line react-hooks/exhaustive-deps
   const selected = sel ? find(cat, sel) : null;
+  // An unknown `sel` is dropped from the URL instead of riding along on every later change.
+  useEffect(() => { if (sel && !selected) set({ sel: null }); }, [sel, selected]); // eslint-disable-line react-hooks/exhaustive-deps
   const storesOf = useMemo(() => new Map(list.map((it) => [it.slug, stockedAt(cat, it)])), [list, cat]);
   const stores = selected ? stockedAt(cat, selected) : null;
 
@@ -55,7 +58,7 @@ export default function Finder({ cat, loc, home = false }) {
   }
 
   const info = catInfo(cat);
-  const mapKey = `${cat}|${sel || ''}|${points.map((p) => p.slug).join(',')}`;
+  const mapKey = `${cat}|${sel || ''}|${points.map((p) => p.slug).sort().join(',')}`;
   const n = selected ? stores.length : list.length;
 
   return (
@@ -109,6 +112,7 @@ export default function Finder({ cat, loc, home = false }) {
         <LeafletMap
           key={mapKey} className="finder-leaflet" tiles="light" eager fit wheel={!home}
           center={[42.3, -71.5]} zoom={8} points={points} hot={hot} focus={focus} focusZoom={12} flyDuration={0.9}
+          ariaLabel={`Map of ${info.label.toLowerCase()} near ${loc}`}
         />
         <div className="finder-legend"><i />{points.length} on the map<span className="muted"> · <Pin className="ic14" />{loc}</span></div>
       </div>

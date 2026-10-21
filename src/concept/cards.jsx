@@ -34,7 +34,7 @@ export function DispensaryRow({ d, i, hot, onHover, to }) {
     <Row
       to={to || itemLink('dispensaries', d)} id={d.slug} hot={hot} onHover={onHover} i={i} featured={d.featured}
       badge={<Badge tone="ink">{d.code}</Badge>}
-      title={<>{d.name}{d.verified && <ShieldCheck className="ic14 frow-verified" aria-label="Verified" />}</>}
+      title={<>{d.name}{d.verified && <><ShieldCheck className="ic14 frow-verified" /><span className="srl">Verified</span></>}</>}
       meta={<><Pin className="ic14" />{d.city} · {d.miles} mi<span className="dot" /><span className="rating"><Star className="ic14" />{d.rating.toFixed(1)}</span><span className="muted"> ({d.reviews})</span></>}
       foot={<><LiveDot>{d.status}</LiveDot>{d.delivery && <span className="chip chip-sm"><Truck className="ic14" />Delivery</span>}<span className="chip chip-sm">{d.products} products</span></>}
     />

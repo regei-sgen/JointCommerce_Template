@@ -26,14 +26,19 @@ export default function WhereToBuy({ loc, onLocation }) {
   useEffect(() => { setText(urlQ); }, [urlQ, location.pathname]);
 
   useEffect(() => {
-    const onDown = (e) => { if (root.current && !root.current.contains(e.target)) setOpen(false); };
+    const onDown = (e) => { if (root.current && !root.current.contains(e.target)) { setOpen(false); setIdx(-1); } };
     document.addEventListener('pointerdown', onDown);
     return () => document.removeEventListener('pointerdown', onDown);
   }, []);
 
+  // Same category: keep the finder's f/sort params, replace q, drop sel. New category: a fresh URL.
   const go = (k = cat, t = text) => {
     const q = t.trim();
-    navigate(`/concept/${k}${q ? `?q=${encodeURIComponent(q)}` : ''}`);
+    const p = k === cat ? new URLSearchParams(location.search) : new URLSearchParams();
+    p.delete('sel');
+    if (q) p.set('q', q); else p.delete('q');
+    const qs = p.toString();
+    navigate(`/concept/${k}${qs ? `?${qs}` : ''}`);
     setOpen(false);
     setIdx(-1);
   };
@@ -60,10 +65,10 @@ export default function WhereToBuy({ loc, onLocation }) {
   let lastGroup = null;
 
   return (
-    <form className="wtb" role="search" ref={root} onSubmit={(e) => { e.preventDefault(); go(); }}>
-      <div className="wtb-tabs" role="tablist" aria-label="Search category">
+    <form className="wtb" role="search" ref={root} onSubmit={(e) => { e.preventDefault(); go(); }} onBlur={(e) => { if (root.current && !root.current.contains(e.relatedTarget)) { setOpen(false); setIdx(-1); } }}>
+      <div className="wtb-tabs" role="group" aria-label="Search category">
         {CATS.map((c) => (
-          <button key={c.key} type="button" role="tab" aria-selected={c.key === cat} className={c.key === cat ? 'on' : ''} onClick={() => go(c.key)}>{c.label}</button>
+          <button key={c.key} type="button" aria-pressed={c.key === cat} className={c.key === cat ? 'on' : ''} onClick={() => go(c.key)}>{c.label}</button>
         ))}
       </div>
       <div className="wtb-field">
@@ -72,30 +77,32 @@ export default function WhereToBuy({ loc, onLocation }) {
         <input
           id="wtb-q" ref={input} type="text" value={text} placeholder={info.placeholder} autoComplete="off"
           role="combobox" aria-expanded={showDrop} aria-controls="wtb-list" aria-autocomplete="list"
-          aria-activedescendant={idx >= 0 ? `wtb-opt-${idx}` : undefined}
+          aria-activedescendant={showDrop && idx >= 0 ? `wtb-opt-${idx}` : undefined}
           onChange={(e) => { setText(e.target.value); setOpen(true); setIdx(-1); }}
           onFocus={() => setOpen(true)} onKeyDown={onKey}
         />
         {text && <button type="button" className="wtb-clear" aria-label="Clear search" onClick={() => { setText(''); setIdx(-1); input.current?.focus(); if (urlQ) go(cat, ''); }}><Close className="ic14" /></button>}
         {showDrop && (
-          <div className="wtb-drop" id="wtb-list" role="listbox">
+          <div className="wtb-drop">
+            {flat.length === 0 && <div className="wtb-group" role="status">No matches for “{text.trim()}”</div>}
+            <div id="wtb-list" role="listbox" aria-label="Suggestions">
             {flat.map((r, i) => {
               const head = r.k !== lastGroup ? <div key={`g-${r.k}`} className="wtb-group">{catInfo(r.k).label}</div> : null;
               lastGroup = r.k;
               return (
                 <div key={`${r.k}-${r.item.slug}`}>
                   {head}
-                  <button type="button" id={`wtb-opt-${i}`} role="option" aria-selected={idx === i} className={`wtb-item${idx === i ? ' on' : ''}`} onMouseDown={(e) => e.preventDefault()} onClick={() => pick(r)}>
+                  <button type="button" tabIndex={-1} id={`wtb-opt-${i}`} role="option" aria-selected={idx === i} className={`wtb-item${idx === i ? ' on' : ''}`} onMouseDown={(e) => e.preventDefault()} onClick={() => pick(r)}>
                     <ItemBadge cat={r.k} item={r.item} />
                     <span className="wtb-item-copy"><span className="wtb-item-title">{r.item.name}</span><span className="wtb-item-meta">{itemSubtitle(r.k, r.item)}</span></span>
                   </button>
                 </div>
               );
             })}
-            {flat.length === 0 && <div className="wtb-group">No matches for “{text.trim()}”</div>}
-            <button type="button" id={`wtb-opt-${flat.length}`} role="option" aria-selected={idx === flat.length} className={`wtb-item wtb-all${idx === flat.length ? ' on' : ''}`} onMouseDown={(e) => e.preventDefault()} onClick={() => go()}>
+            <button type="button" tabIndex={-1} id={`wtb-opt-${flat.length}`} role="option" aria-selected={idx === flat.length} className={`wtb-item wtb-all${idx === flat.length ? ' on' : ''}`} onMouseDown={(e) => e.preventDefault()} onClick={() => go()}>
               <Search className="ic18" />Search {info.label.toLowerCase()} for “{text.trim()}”<ChevronRight className="ic14 ic-after" />
             </button>
+            </div>
           </div>
         )}
       </div>

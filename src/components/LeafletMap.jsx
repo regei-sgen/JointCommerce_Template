@@ -25,7 +25,7 @@ const keyOf = (pt) => pt.slug || `${pt.name}|${pt.city}`;
  */
 export default function LeafletMap({
   className = '', center, zoom = 9, focus, points = [], interactive = true, focusZoom = 11, eager = false,
-  hot, fit = false, tiles = 'dark', wheel = false, flyDuration = 1.6,
+  hot, fit = false, tiles = 'dark', wheel = false, flyDuration = 1.6, ariaLabel,
 }) {
   const el = useRef(null);
   const map = useRef(null);
@@ -96,7 +96,8 @@ export default function LeafletMap({
   useEffect(() => {
     pendingFocus.current = focus;
     if (!map.current || !focus) return;
-    map.current.flyTo([focus.lat, focus.lng], focusZoom, { duration: flyDuration, easeLinearity: 0.3 });
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) map.current.setView([focus.lat, focus.lng], focusZoom, { animate: false });
+    else map.current.flyTo([focus.lat, focus.lng], focusZoom, { duration: flyDuration, easeLinearity: 0.3 });
   }, [focus?.lat, focus?.lng, focusZoom, flyDuration]);
 
   const applyHot = (h) => {
@@ -111,5 +112,5 @@ export default function LeafletMap({
   };
   useEffect(() => { if (map.current) applyHot(hot); }, [Array.isArray(hot) ? hot.join('|') : hot]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  return <div ref={el} className={`leaflet-host ${className}`} />;
+  return <div ref={el} className={`leaflet-host ${className}`} role={ariaLabel ? 'region' : undefined} aria-label={ariaLabel} />;
 }

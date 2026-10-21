@@ -18,22 +18,23 @@ const NAV = [
 ];
 const TABBAR = ['Home', 'Dispensaries', 'Deals', 'Brands', 'Strains'];
 
+// Module-scope so its identity is stable across Shell renders (focus survives navigation).
+function Item({ item, className, location }) {
+  const Ic = item.icon;
+  const on = item.active(location);
+  return (
+    <Link to={item.to} className={`${className}${on ? ' on' : ''}`} aria-current={on ? 'page' : undefined}>
+      <Ic className="ic18" /><span>{item.label}</span>
+    </Link>
+  );
+}
+
 // Layout: fixed left sidebar (categories), sticky top bar (search tool, location, account), content.
 export default function Shell() {
   const location = useLocation();
   const [loc, setLoc] = useState('Boston, MA');
   const [modal, setModal] = useState(null); // 'location' | 'login' | 'signup'
   const hide = () => setModal(null);
-
-  const Item = ({ item, className }) => {
-    const Ic = item.icon;
-    const on = item.active(location);
-    return (
-      <Link to={item.to} className={`${className}${on ? ' on' : ''}`} aria-current={on ? 'page' : undefined}>
-        <Ic className="ic18" /><span>{item.label}</span>
-      </Link>
-    );
-  };
 
   return (
     <div className="cx">
@@ -43,7 +44,7 @@ export default function Shell() {
           <Wordmark height={20} />
         </Link>
         <nav className="cx-nav" aria-label="Browse">
-          {NAV.map((item) => <Item key={item.label} item={item} className="cx-link" />)}
+          {NAV.map((item) => <Item key={item.label} item={item} location={location} className="cx-link" />)}
         </nav>
         <div className="cx-sb-foot">
           <div className="cx-claim">
@@ -68,7 +69,7 @@ export default function Shell() {
       </div>
 
       <nav className="cx-tabbar" aria-label="Browse">
-        {NAV.filter((n) => TABBAR.includes(n.label)).map((item) => <Item key={item.label} item={item} className="cx-tab" />)}
+        {NAV.filter((n) => TABBAR.includes(n.label)).map((item) => <Item key={item.label} item={item} location={location} className="cx-tab" />)}
       </nav>
 
       <LocationModal open={modal === 'location'} onClose={hide} onSet={setLoc} />

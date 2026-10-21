@@ -92,7 +92,7 @@ export function search(q, cat = 'all', { filters = [], sort } = {}) {
   const keys = cat === 'all' ? CAT_KEYS : [cat];
   const out = {};
   for (const k of keys) {
-    const sortFn = (SORTS[k][sort] || SORTS[k][defaultSort(k)])[1];
+    const sortFn = (sort && Object.hasOwn(SORTS[k], sort) ? SORTS[k][sort] : SORTS[k][defaultSort(k)])[1];
     const active = FILTERS[k].filter(([key]) => filters.includes(key));
     const passes = (item) => !active.length || (FILTER_MODE[k] === 'and' ? active.every(([, , p]) => p(item)) : active.some(([, , p]) => p(item)));
     const ranked = SOURCE[k]
