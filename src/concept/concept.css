@@ -548,7 +548,7 @@
 
 /* ===== map v2: initial pins, tooltip, card popup, fit control ===== */
 .tiles-positron { filter: saturate(0.9); }
-.tiles-streets { filter: grayscale(0.92) saturate(0.6) brightness(1.06) contrast(0.9); }
+.tiles-streets { filter: none; }
 .finder .leaflet-container, .dp-map .leaflet-container { background: #f2f4f3; }
 .pin { width: 44px; height: 44px; margin: 0; }
 .pin > * { position: absolute; left: 50%; top: 50%; translate: -50% -50%; border-radius: 50%; }
