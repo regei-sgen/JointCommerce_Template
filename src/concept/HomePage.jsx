@@ -3,7 +3,7 @@ import { site, footerColumns } from '../data.js';
 import { Store, Star, Tag, Leaf, ChevronRight, ShieldCheck, Clock, Pin } from '../icons.jsx';
 import { LiveDot, TypeChip } from '../components/ui.jsx';
 import { useReveal } from '../hooks/useReveal.js';
-import { search, itemLink } from './search.js';
+import { search, itemLink, isDemo } from './search.js';
 import { fmtMiles } from './geo.js';
 import { Badge } from './cards.jsx';
 import { CAT_ICONS } from './catIcons.jsx';
@@ -39,7 +39,7 @@ export default function HomePage() {
           <Link to="/deals" className="hm-banner hm-banner-ink">
             <span className="hm-banner-kicker"><Tag className="ic14" />Deals near {place.name}</span>
             <span className="hm-banner-title">Up to {bestDeal.pct}% off today</span>
-            <span className="hm-banner-text">{res.deals.length.toLocaleString()} deals read straight from live menus.</span>
+            <span className="hm-banner-text">{res.deals.length.toLocaleString()} deals {isDemo() ? 'in the sample menus' : 'read straight from live menus'}.</span>
             <span className="btn sm hm-banner-btn">Shop deals<ChevronRight className="ic14 ic-after" /></span>
           </Link>
         ) : (

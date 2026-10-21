@@ -80,6 +80,56 @@ const dBySlug = Object.fromEntries(dispensaries.map((d) => [d.slug, d]));
 const stateAbbrByName = {};
 if (geo) for (const s of geo.states) stateAbbrByName[s.name.toLowerCase()] = s.state_id;
 
+// ---- sample menus (--demo-menus): deterministic items on real stores, real brand and strain names ----
+// Items are shaped like API menu rows so the pipeline below converts them unchanged. Deals come from
+// items with an original_price. Removed by running the build without the flag.
+const DEMO = process.argv.includes('--demo-menus');
+const demoDeals = {};
+if (DEMO) {
+  const hash = (s) => { let h = 2166136261; for (const ch of String(s)) { h ^= ch.charCodeAt(0); h = Math.imul(h, 16777619) >>> 0; } return h; };
+  const rng = (seed) => { let x = hash(seed) || 1; return () => { x ^= x << 13; x >>>= 0; x ^= x >>> 17; x ^= x << 5; x >>>= 0; return x / 4294967296; }; };
+  const pick = (r, list) => list[Math.floor(r() * list.length)];
+  const strainPool = rawS.filter((s) => s.slug && s.name && s.name.length >= 4 && s.name.length <= 22);
+  const brandPool = rawB.filter((b) => b.slug && b.name);
+  const brandsByState = {};
+  for (const b of brandPool) { const ab = b.state ? stateAbbrByName[String(b.state).toLowerCase()] : null; if (ab) (brandsByState[ab] ||= []).push(b); }
+  const FORMS = {
+    Flower: [['3.5g', [30, 65]], ['7g', [55, 120]], ['14g', [100, 210]], ['28g', [180, 380]]],
+    'Pre-rolls': [['1g', [8, 18]], ['2 × 0.5g', [12, 24]], ['5-pack 0.5g', [28, 55]], ['Infused 1g', [18, 32]]],
+    Vapes: [['Cart 0.5g', [25, 45]], ['Cart 1g', [40, 75]], ['Live Resin Cart 1g', [50, 85]], ['Disposable 1g', [35, 60]]],
+    Edibles: [['Gummies 100mg', [15, 30]], ['Chocolate Bar 100mg', [18, 32]], ['Mints 50mg', [12, 22]], ['Seltzer 10mg', [6, 12]]],
+    Concentrates: [['Live Resin 1g', [35, 70]], ['Badder 1g', [30, 60]], ['Rosin 1g', [55, 110]], ['Shatter 1g', [25, 50]]],
+  };
+  const CAT_W = ['Flower', 'Flower', 'Flower', 'Pre-rolls', 'Pre-rolls', 'Vapes', 'Vapes', 'Edibles', 'Edibles', 'Concentrates'];
+  const EDIBLE_NAMES = ['Sour Watermelon', 'Peach Mango', 'Dark Chocolate Sea Salt', 'Milk Chocolate', 'Wild Berry', 'Blood Orange', 'Mint Chip', 'Strawberry Lemonade'];
+  const candidates = dispensaries.filter((d) => d.menu || details[d.slug] || d.pinned)
+    .sort((a, b) => (b.pinned - a.pinned) || (b.reviews - a.reviews) || a.name.localeCompare(b.name));
+  const chosen = new Map(); const perState = {};
+  for (const d of candidates) { if (chosen.size >= 450) break; chosen.set(d.slug, d); perState[d.state] = (perState[d.state] || 0) + 1; }
+  for (const d of dispensaries) if (d.state && (perState[d.state] || 0) < 3 && typeof d.lat === 'number') { chosen.set(d.slug, d); perState[d.state] = (perState[d.state] || 0) + 1; }
+  for (const d of chosen.values()) {
+    const r = rng(d.slug);
+    const n = 12 + Math.floor(r() * 19);
+    const localBrands = brandsByState[d.state] && brandsByState[d.state].length >= 3 ? brandsByState[d.state] : brandPool;
+    const items = []; const deals = [];
+    for (let i = 0; i < n; i++) {
+      const category = pick(r, CAT_W);
+      const [form, [lo, hi]] = pick(r, FORMS[category]);
+      const strain = category === 'Edibles' ? null : pick(r, strainPool);
+      const brand = pick(r, r() < 0.7 ? localBrands : brandPool);
+      const name = strain ? `${strain.name} ${form}` : `${pick(r, EDIBLE_NAMES)} ${form}`;
+      const price = Math.round(lo + r() * (hi - lo));
+      const onSale = r() < 0.28;
+      const original = onSale ? Math.round(price / (1 - (0.1 + r() * 0.3))) : null;
+      const thc = category === 'Edibles' ? null : Math.round((strain && (num(strain.thc_max) || num(strain.thc_min))) || 14 + r() * 16);
+      items.push({ name, slug: slugify(name), category, weight: form, brand: brand.name, price, original_price: original, thc, strain_type: strain ? strain.strain_type : null, in_stock: r() > 0.08 });
+      if (original) deals.push({ title: `${Math.round((1 - price / original) * 100)}% off ${name}`, description: `${brand.name} · ${category}`, discount_value: Math.round((1 - price / original) * 100), price, original_price: original, category, end_date: new Date(Date.now() + Math.floor(r() * 6) * 86400000).toISOString(), is_active: true });
+    }
+    menus[d.slug] = items; demoDeals[d.slug] = deals;
+  }
+  console.log('demo menus on', chosen.size, 'stores');
+}
+
 // ---- menus → products ----
 const menusOut = {};
 const products = [];
@@ -94,17 +144,19 @@ for (const [slug, items] of Object.entries(menus)) {
     return clean({ slug: `p-${slug}-${slugify(m.slug || m.name)}-${i}`, name: m.name, meta, category, price, was: was && price && was > price ? was : null, pct: was && price && was > price ? Math.round((1 - price / was) * 100) : null, thc: num(m.thc), type: m.strain_type ? TYPE(m.strain_type) : null, brand, inStock: m.in_stock !== false, store: store.name, storeSlug: slug, featured: !!(store.pinned || store.premium) });
   });
   products.push(...menusOut[slug]);
+  dBySlug[slug].products = menusOut[slug].length;
 }
 
-// ---- deals from store details ----
+// ---- deals from store details (plus sample deals when --demo-menus) ----
 const deals = [];
-for (const [slug, det] of Object.entries(details)) {
-  const store = dBySlug[slug]; if (!store || !Array.isArray(det.deals)) continue;
-  det.deals.forEach((x, i) => {
+const dealSources = [...Object.entries(details).map(([slug, det]) => [slug, det.deals]), ...Object.entries(demoDeals)];
+for (const [slug, list] of dealSources) {
+  const store = dBySlug[slug]; if (!store || !Array.isArray(list)) continue;
+  list.forEach((x, i) => {
     if (x.is_active === false) return;
     const pct = num(x.discount_value); const end = x.end_date ? new Date(x.end_date) : null;
     const ends = end ? (end.toDateString() === new Date().toDateString() ? 'Tonight' : end.toLocaleDateString('en-US', { weekday: 'long' })) : 'Ongoing';
-    deals.push(clean({ slug: `deal-${slug}-${slugify(x.slug || x.title)}-${i}`, name: x.title || x.headline || 'Deal', meta: (x.description || '').slice(0, 90), pct: pct && pct <= 100 ? pct : null, price: null, was: null, store: store.name, storeSlug: slug, ends, category: '', link: x.link || '', featured: !!(x.featured || store.pinned || store.premium) }));
+    deals.push(clean({ slug: `deal-${slug}-${slugify(x.slug || x.title)}-${i}`, name: x.title || x.headline || 'Deal', meta: (x.description || '').slice(0, 90), pct: pct && pct <= 100 ? pct : null, price: num(x.price), was: num(x.original_price), store: store.name, storeSlug: slug, ends, category: CAT(x.category) === 'Other' && !x.category ? '' : CAT(x.category), link: x.link || '', featured: !!(x.featured || store.pinned || store.premium) }));
   });
 }
 
@@ -174,5 +226,5 @@ await write('embeds.json', embeds);
 await write('details.json', detailsOut);
 await write('links.json', { storesOfBrand, brandsOfStore, storesOfStrain, strainsOfStore });
 if (geoOut) await write('geo.json', geoOut);
-await write('meta.json', { builtAt: new Date().toISOString(), counts: { dispensaries: dispensaries.length, brands: brands.length, strains: strains.length, products: products.length, deals: deals.length, menus: Object.keys(menusOut).length, embeds: Object.keys(embeds).length, delivery: dispensaries.filter((d) => d.delivery).length, details: Object.keys(detailsOut).length, cities: geoOut ? Object.values(geoOut.cities).reduce((n, l) => n + l.length, 0) : 0 } });
+await write('meta.json', { builtAt: new Date().toISOString(), demoMenus: DEMO, counts: { dispensaries: dispensaries.length, brands: brands.length, strains: strains.length, products: products.length, deals: deals.length, menus: Object.keys(menusOut).length, embeds: Object.keys(embeds).length, delivery: dispensaries.filter((d) => d.delivery).length, details: Object.keys(detailsOut).length, cities: geoOut ? Object.values(geoOut.cities).reduce((n, l) => n + l.length, 0) : 0 } });
 console.log('done');

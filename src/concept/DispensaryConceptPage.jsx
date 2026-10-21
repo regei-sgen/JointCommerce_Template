@@ -5,7 +5,7 @@ import { Pin, Phone, Globe, Star, Clock, Store, ShieldCheck, Truck, Navigate as 
 import LeafletMap from '../components/LeafletMap.jsx';
 import { LiveDot, TypeChip } from '../components/ui.jsx';
 import { useReveal } from '../hooks/useReveal.js';
-import { find, menuFor, embedFor, dealsAt, strainsAt, brandsAt, detailsFor } from './search.js';
+import { find, menuFor, embedFor, dealsAt, strainsAt, brandsAt, detailsFor, isDemo } from './search.js';
 import { fmtMiles } from './geo.js';
 import { Badge, DealRow, StrainRow, BrandRow } from './cards.jsx';
 
@@ -85,7 +85,7 @@ function Store_({ d, details, slug }) {
             </section>
           ) : (
           <section className="dp-sec" id="menu" data-reveal style={{ '--i': 1 }}>
-            <h2 className="dp-h2"><Store className="ic18" />Menu<span className="dcount">{list.length}</span><LiveDot className="dp-live">Live · checked this morning</LiveDot></h2>
+            <h2 className="dp-h2"><Store className="ic18" />Menu<span className="dcount">{list.length}</span><LiveDot className="dp-live">{isDemo() ? 'Sample menu for testing' : 'Live · checked this morning'}</LiveDot></h2>
             <div className="dp-filters">
               <div className="finder-chips" role="group" aria-label="Category">
                 {['All', ...cats].map((c) => <button key={c} type="button" className={`chip-btn${cat === c ? ' on' : ''}`} aria-pressed={cat === c} onClick={() => setCat(c)}>{c}</button>)}

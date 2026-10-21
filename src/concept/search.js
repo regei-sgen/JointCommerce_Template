@@ -55,6 +55,8 @@ export function setData(next) {
   bySlug = Object.fromEntries(DATA.dispensaries.map((d) => [d.slug, d]));
 }
 export const isLoaded = () => DATA.loaded;
+// True when the snapshot was built with --demo-menus (sample products and deals on real stores).
+export const isDemo = () => !!(DATA.meta && DATA.meta.demoMenus);
 export const storeBySlug = (slug) => bySlug[slug] || null;
 
 const SOURCE = DATA; // cat → list

@@ -29,3 +29,14 @@ New layouts are built as concept routes on `concept/<name>` branches and promote
 - `src/data.js` – all sample content; `src/images.js` – card photo URLs
 - `scripts/` – generators for `src/stateShapes.js` and `src/usMap.js` from US Census boundaries (`us-atlas`)
 - `src/styles.css` – tokens, components, breakpoints (1100 / 900 / 640 / 420)
+
+## Data snapshot
+
+The pages read `public/data/jc/*.json`, built from raw API dumps in `data/crawl/` (gitignored) by:
+
+```
+node --max-old-space-size=4096 scripts/build-jc-data.mjs              # API data only
+node --max-old-space-size=4096 scripts/build-jc-data.mjs --demo-menus # plus sample products and deals on ~500 real stores
+```
+
+The API publishes no product, menu-item or deal rows, so without `--demo-menus` the Products and Deals pages are empty. With it, `meta.json` carries `demoMenus: true` and the store page labels the menu "Sample menu for testing". Third-party menu embeds (Dutchie, Jane, Meadow, Leafly, Dispense, Sweede) are parsed from the API's `menu_html` into `embeds.json` either way.
