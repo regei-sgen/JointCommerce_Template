@@ -743,8 +743,9 @@ html.cx-map, html.cx-map body { overflow: hidden; }
 .cx-map .cx-sb, .cx-map .cx-tabbar { display: none; }
 .cx-map .cx-main { margin-left: 0; }
 .cx-map .cx-top { position: fixed; top: 12px; left: 16px; right: 16px; z-index: 700; min-height: 0; padding: 8px 10px; border-radius: 16px; border: 1px solid var(--cx-line); background: rgba(255, 255, 255, 0.94); box-shadow: var(--cx-float); }
-.cx-map .finder { position: fixed; inset: 0; display: block; height: 100vh; min-height: 0; }
+.cx-map .finder { position: fixed; inset: 0; display: block; height: auto; min-height: 0; } /* inset sizes it to the visible viewport; an explicit 100vh overshoots under a phone's address bar */
 .cx-map .finder-map { position: absolute; inset: 0; height: auto; min-height: 0; order: 0; } /* height: auto beats the phone rule's fixed 280px */
+.cx-map .finder-list, .cx-map .dp { -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
 .cx-map .finder-panel { position: absolute; left: 16px; top: 84px; bottom: 16px; width: 420px; z-index: 600; border: 1px solid var(--cx-line); border-radius: 18px; box-shadow: var(--cx-float); overflow: hidden; transition: transform 0.35s var(--ease-soft), opacity 0.3s; }
 .cx-map .finder-panel.closed { transform: translateX(calc(-100% - 24px)); opacity: 0; pointer-events: none; }
 .cx-map .finder-map .leaflet-top.leaflet-left { top: 84px; left: 452px; transition: left 0.35s var(--ease-soft); }
@@ -755,7 +756,8 @@ html.cx-map, html.cx-map body { overflow: hidden; }
 .map-mode-btn .ic14 { margin: 0; }
 .cx-map .map-mode-btn { top: 84px; }
 .map-panel-tab { position: absolute; top: 50%; left: 436px; z-index: 650; width: 26px; height: 56px; translate: 0 -50%; border: 1px solid var(--cx-line); border-left: 0; border-radius: 0 12px 12px 0; background: #fff; color: var(--ink); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: var(--cx-float); transition: left 0.35s var(--ease-soft); }
-.map-panel-tab:hover { background: var(--cx-tint); }
+.map-panel-tab:hover { background: #eef3f1; } /* opaque: a translucent tint shows the map through a tapped handle on touch screens */
+@media (hover: none) { .map-panel-tab:hover { background: #fff; } .map-mode-btn:hover { background: rgba(255, 255, 255, 0.95); color: var(--ink); border-color: var(--cx-line); } }
 .map-panel-tab .ic14 { margin: 0; }
 .map-panel-tab .flip-x { transform: scaleX(-1); }
 .cx-map .finder.panel-closed .map-panel-tab { left: 0; }
@@ -947,6 +949,7 @@ button.link:hover, button.link-sm:hover { text-decoration: underline; text-under
 .cx-map .globe-zoom { z-index: 700; }
 @media (max-width: 640px) {
   .cx-map .finder-panel { height: 50vh; }
+  .cx-map .finder-list { flex: 1 1 auto; min-height: 0; overflow-y: auto; } /* the phone layout lets the page scroll instead; the sheet needs its own scroll */
   .cx-map .finder-legend { bottom: calc(50vh + 12px); }
   .map-panel-tab, .cx-map .finder.panel-closed .map-panel-tab { bottom: 50vh; }
   .cx-map .finder.panel-closed .map-panel-tab { bottom: 0; }
