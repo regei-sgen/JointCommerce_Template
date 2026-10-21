@@ -1,5 +1,7 @@
 # Concept pages
 
+> 2026-10-21: `concept/weedmaps-shell` was promoted. The shell now serves the root routes (`/`, `/:cat`, `/dispensaries/:slug`, `/learn`); `/concept/*` and `/blog` redirect. The table below reads with the `/concept` prefix removed.
+
 New page layouts are built as **concept pages**: routes under `/concept/*`, on a `concept/<name>` git branch,
 with their own components under `src/concept/`. The existing routes (`/`, `/dispensaries`, `/brands`, …) are
 not modified by a concept. A concept is promoted by moving its components into `src/pages` / `src/components`

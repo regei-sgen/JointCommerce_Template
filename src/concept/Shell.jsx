@@ -12,16 +12,16 @@ const MARK = `${import.meta.env.BASE_URL}img/logo-icon.png`;
 
 // `cat` items get the location path appended (/in/united-states/<state>/<city>) when the place has one.
 const NAV = [
-  { to: '/concept', label: 'Home', icon: Home, active: (l) => l.pathname === '/concept' || l.pathname === '/concept/' },
-  { cat: 'dispensaries', label: 'Dispensaries', icon: Store, active: (l) => l.pathname.startsWith('/concept/dispensaries') && !/\bf=delivery\b/.test(l.search) },
-  { cat: 'dispensaries', query: '?f=delivery', label: 'Deliveries', icon: Truck, active: (l) => l.pathname.startsWith('/concept/dispensaries') && /\bf=delivery\b/.test(l.search) },
-  { cat: 'deals', label: 'Deals', icon: Tag, active: (l) => l.pathname.startsWith('/concept/deals') },
-  { cat: 'brands', label: 'Brands', icon: Star, active: (l) => l.pathname.startsWith('/concept/brands') },
-  { cat: 'products', label: 'Products', icon: Grid, active: (l) => l.pathname.startsWith('/concept/products') },
-  { cat: 'strains', label: 'Strains', icon: Leaf, active: (l) => l.pathname.startsWith('/concept/strains') },
-  { to: '/concept/learn', label: 'Learn', icon: Book, active: (l) => l.pathname === '/concept/learn' },
+  { to: '/', label: 'Home', icon: Home, active: (l) => l.pathname === '/' },
+  { cat: 'dispensaries', label: 'Dispensaries', icon: Store, active: (l) => l.pathname.startsWith('/dispensaries') && !/\bf=delivery\b/.test(l.search) },
+  { cat: 'dispensaries', query: '?f=delivery', label: 'Deliveries', icon: Truck, active: (l) => l.pathname.startsWith('/dispensaries') && /\bf=delivery\b/.test(l.search) },
+  { cat: 'deals', label: 'Deals', icon: Tag, active: (l) => l.pathname.startsWith('/deals') },
+  { cat: 'brands', label: 'Brands', icon: Star, active: (l) => l.pathname.startsWith('/brands') },
+  { cat: 'products', label: 'Products', icon: Grid, active: (l) => l.pathname.startsWith('/products') },
+  { cat: 'strains', label: 'Strains', icon: Leaf, active: (l) => l.pathname.startsWith('/strains') },
+  { to: '/learn', label: 'Learn', icon: Book, active: (l) => l.pathname === '/learn' },
 ];
-const navTo = (item, locPath) => item.to || `/concept/${item.cat}${locPath}${item.query || ''}`;
+const navTo = (item, locPath) => item.to || `/${item.cat}${locPath}${item.query || ''}`;
 const TABBAR = ['Home', 'Dispensaries', 'Deals', 'Brands', 'Strains'];
 
 // Module-scope so its identity is stable across Shell renders (focus survives navigation).
@@ -55,9 +55,9 @@ export default function Shell() {
   // After a change the current category (or dispensaries from home/learn) opens at the place's path.
   const goToPlace = (p, { fromUrl = false } = {}) => {
     if (fromUrl) return;
-    const onCat = /^\/concept\/[a-z]+/.test(location.pathname) && !location.pathname.startsWith('/concept/learn');
+    const onCat = /^\/[a-z]+/.test(location.pathname) && !location.pathname.startsWith('/learn');
     const k = onCat ? cat : 'dispensaries';
-    const base = `/concept/${k}${placePath(p)}`;
+    const base = `/${k}${placePath(p)}`;
     const qs = location.search && onCat ? location.search : '';
     navigate(base + qs);
   };
@@ -73,7 +73,7 @@ export default function Shell() {
   return (
     <div className="cx">
       <aside className="cx-sb">
-        <Link to="/concept" className="cx-brand" aria-label="JointCommerce home">
+        <Link to="/" className="cx-brand" aria-label="JointCommerce home">
           <img className="cx-mark" src={MARK} alt="" width="36" height="36" />
           <Wordmark height={20} />
         </Link>
@@ -87,7 +87,7 @@ export default function Shell() {
 
       <div className="cx-main">
         <header className="cx-top">
-          <Link to="/concept" className="cx-top-brand" aria-label="JointCommerce home"><img className="cx-top-mark" src={MARK} alt="" width="36" height="36" /><Wordmark height={18} /></Link>
+          <Link to="/" className="cx-top-brand" aria-label="JointCommerce home"><img className="cx-top-mark" src={MARK} alt="" width="36" height="36" /><Wordmark height={18} /></Link>
           <WhereToBuy place={place} onLocation={() => setModal('location')} />
           <div className="cx-acct">
             <button type="button" className="btn plain sm" onClick={() => setModal('login')}><User className="ic14" /><span className="nav-login-text">Log in</span></button>

@@ -1,6 +1,6 @@
-# JointCommerce homepage template (React + Vite)
+# JointCommerce site (React + Vite)
 
-Glass-style homepage and dispensary detail page: map-backed hero with a live carousel, photo cards and posters, dark live-menu band with parallax, bento "why" section, interactive US map, Leaflet maps, dispensary page with tabs, and header modals (set location, log in, sign up). All data is sample data in `src/data.js`.
+Left-sidebar shell with one search tool across dispensaries, deals, brands, products and strains; a list-plus-map finder for every category; location paths like `/dispensaries/in/united-states/nevada/las-vegas`; a dispensary page with a filterable menu. No photography. All data is sample data in `src/data.js`, `src/listingData.js` and `src/concept/search.js`.
 
 Preview: https://regei-sgen.github.io/JointCommerce_Template/
 
@@ -19,13 +19,13 @@ npm run preview  # serve the build
 
 ## Concept pages
 
-New layouts are built under `/concept/*` on `concept/<name>` branches without touching the routes above. See `CONCEPTS.md`.
+New layouts are built as concept routes on `concept/<name>` branches and promoted when approved. See `CONCEPTS.md`.
 
 ## Structure
 
-- `src/App.jsx` – routes (`/`, `/dispensaries/:slug`) and page composition
-- `src/components/` – Hero, HeroCarousel, Navbar (dropdowns + modals), Rail (auto carousel), Sections, DarkBand, Strips (trust, bento, newsletter), Footer, LeafletMap, UsMap, Modal, AuthModals, ui
-- `src/pages/DispensaryPage.jsx` – dispensary detail page
+- `src/App.jsx` – routes: `/`, `/:cat`, `/:cat/in/united-states/:state/:city?`, `/dispensaries/:slug`, `/learn`
+- `src/concept/` – the shell and its pages (Shell, HomePage, CategoryPage, Finder, DispensaryConceptPage, LearnPage, WhereToBuy, cards, search, geo, concept.css)
+- `src/components/` – LeafletMap, Modal, AuthModals, ui, Wordmark are used by the shell; the earlier template's Hero, Sections, DarkBand, Strips, Footer, Rail and `src/pages/*` remain on disk but are no longer routed
 - `src/data.js` – all sample content; `src/images.js` – card photo URLs
 - `scripts/` – generators for `src/stateShapes.js` and `src/usMap.js` from US Census boundaries (`us-atlas`)
 - `src/styles.css` – tokens, components, breakpoints (1100 / 900 / 640 / 420)

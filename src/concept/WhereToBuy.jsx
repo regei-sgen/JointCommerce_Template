@@ -5,15 +5,15 @@ import { CATS, CAT_KEYS, isCat, catInfo, search, itemLink } from './search.js';
 import { ItemBadge, itemSubtitle } from './cards.jsx';
 import { placePath } from './geo.js';
 
-// Category from the current URL (/concept/:cat); 'dispensaries' elsewhere.
+// Category from the current URL (/:cat); 'dispensaries' elsewhere.
 export function useFinderCat() {
   const { pathname } = useLocation();
-  const m = pathname.match(/^\/concept\/([a-z]+)/);
+  const m = pathname.match(/^\/([a-z]+)/);
   return m && isCat(m[1]) ? m[1] : 'dispensaries';
 }
 
 // The search tool: category tabs, one text field with grouped typeahead, location, submit.
-// Submitting navigates to /concept/<cat>?q=…; picking a suggestion navigates to that item.
+// Submitting navigates to /<cat>?q=…; picking a suggestion navigates to that item.
 export default function WhereToBuy({ place, onLocation }) {
   const loc = place.name;
   const navigate = useNavigate();
@@ -40,7 +40,7 @@ export default function WhereToBuy({ place, onLocation }) {
     p.delete('sel');
     if (q) p.set('q', q); else p.delete('q');
     const qs = p.toString();
-    navigate(`/concept/${k}${placePath(place)}${qs ? `?${qs}` : ''}`);
+    navigate(`/${k}${placePath(place)}${qs ? `?${qs}` : ''}`);
     setOpen(false);
     setIdx(-1);
   };

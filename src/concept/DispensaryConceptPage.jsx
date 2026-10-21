@@ -14,13 +14,13 @@ const CATS = ['Flower', 'Pre-rolls', 'Vapes', 'Edibles', 'Concentrates'];
 const TYPES = ['hyb', 'sat', 'ind'];
 const SORTS = { price: ['Lowest price', (a, b) => a.price - b.price], thc: ['Highest THC', (a, b) => (b.thc || 0) - (a.thc || 0)], name: ['A to Z', (a, b) => a.name.localeCompare(b.name)] };
 
-// /concept/dispensaries/:slug — one store inside the shell: header, today's deals, the menu with
+// /dispensaries/:slug — one store inside the shell: header, today's deals, the menu with
 // category/type filters and sort, strains and brands on the menu, and a side column (map, hours, contact).
 export default function DispensaryConceptPage() {
   const { slug } = useParams();
   const { place } = useOutletContext();
   const d = find('dispensaries', slug, place);
-  if (!d) return <Navigate to="/concept/dispensaries" replace />;
+  if (!d) return <Navigate to="/dispensaries" replace />;
   // key={slug}: a slug change remounts the body (filter state, side map, reveals).
   return <Store_ key={slug} d={d} details={getDispensary(slug, d)} slug={slug} />;
 }
@@ -45,7 +45,7 @@ function Store_({ d, details, slug }) {
 
   return (
     <div className="dp">
-      <nav className="dp-crumbs" aria-label="Breadcrumb"><Link to="/concept/dispensaries"><ChevronLeft className="ic14" />Dispensaries</Link></nav>
+      <nav className="dp-crumbs" aria-label="Breadcrumb"><Link to="/dispensaries"><ChevronLeft className="ic14" />Dispensaries</Link></nav>
 
       <div className="dp-head" data-reveal>
         <Badge tone="ink" className="dp-badge">{d.code}</Badge>

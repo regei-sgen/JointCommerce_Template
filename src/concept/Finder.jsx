@@ -104,7 +104,7 @@ export default function Finder({ cat, place, home = false }) {
             list.map((item, i) => <ResultRow key={item.slug} cat={cat} item={item} i={i} hot={hover === item.slug} onHover={setHover} />)
           ) : (
             <Empty text={q ? `Nothing matches “${q}”. Try another word or clear a filter.` : 'Nothing matches these filters.'}>
-              {(q || filters.length > 0) && <Link to={`/concept/${cat}`} className="link link-sm">Clear search and filters</Link>}
+              {(q || filters.length > 0) && <Link to={`/${cat}`} className="link link-sm">Clear search and filters</Link>}
             </Empty>
           )}
         </div>

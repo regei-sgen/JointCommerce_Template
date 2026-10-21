@@ -1,58 +1,12 @@
 import { useEffect, lazy, Suspense } from 'react';
-import { Routes, Route, useLocation } from 'react-router-dom';
-import Hero from './components/Hero.jsx';
-import DarkBand from './components/DarkBand.jsx';
-import { TopDispensaries, FeaturedBrands, PopularStrains, StatesSection, MapSection, Education, OwnerCta } from './components/Sections.jsx';
-import { Advertise, Footer } from './components/Footer.jsx';
-import { TrustStrip, WhyRow, NewsletterStrip } from './components/Strips.jsx';
-const DispensaryPage = lazy(() => import('./pages/DispensaryPage.jsx'));
-const DispensariesPage = lazy(() => import('./pages/DispensariesPage.jsx'));
-const BrandsPage = lazy(() => import('./pages/BrandsPage.jsx'));
-const StrainsPage = lazy(() => import('./pages/StrainsPage.jsx'));
-const DealsPage = lazy(() => import('./pages/DealsPage.jsx'));
-const StatesPage = lazy(() => import('./pages/StatesPage.jsx'));
-const ArticlesPage = lazy(() => import('./pages/ArticlesPage.jsx'));
-// Concept pages (see CONCEPTS.md): a separate shell under /concept, left untouched by the routes above.
-const ConceptShell = lazy(() => import('./concept/Shell.jsx'));
-const ConceptHome = lazy(() => import('./concept/HomePage.jsx'));
-const ConceptCategory = lazy(() => import('./concept/CategoryPage.jsx'));
-const ConceptDispensary = lazy(() => import('./concept/DispensaryConceptPage.jsx'));
-const ConceptLearn = lazy(() => import('./concept/LearnPage.jsx'));
-import { useReveal } from './hooks/useReveal.js';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 
-function Home() {
-  useReveal();
-
-  return (
-    <>
-      <div className="topbar">
-        <div className="wrap topbar-inner">
-          <span className="muted">Join the JointCommerce newsletter</span>
-          <form className="topbar-form" onSubmit={(e) => e.preventDefault()}>
-            <label htmlFor="nl1" className="srl">Email</label>
-            <input id="nl1" type="email" placeholder="Enter your email address" />
-            <button type="submit" className="btn xs">Subscribe</button>
-          </form>
-          <span className="muted topbar-note">By subscribing you agree to our Terms and Privacy Policy.</span>
-        </div>
-      </div>
-      <Hero />
-      <TrustStrip />
-      <TopDispensaries />
-      <FeaturedBrands />
-      <PopularStrains />
-      <DarkBand />
-      <WhyRow />
-      <StatesSection />
-      <MapSection />
-      <Education />
-      <OwnerCta />
-      <Advertise />
-      <NewsletterStrip />
-      <Footer />
-    </>
-  );
-}
+// The shell (src/concept) is the site: fixed sidebar, sticky search bar, content.
+const Shell = lazy(() => import('./concept/Shell.jsx'));
+const HomePage = lazy(() => import('./concept/HomePage.jsx'));
+const CategoryPage = lazy(() => import('./concept/CategoryPage.jsx'));
+const DispensaryPage = lazy(() => import('./concept/DispensaryConceptPage.jsx'));
+const LearnPage = lazy(() => import('./concept/LearnPage.jsx'));
 
 // Jump to the top on every route change (the browser keeps the old scroll position otherwise).
 function ScrollToTop() {
@@ -67,25 +21,17 @@ export default function App() {
       <ScrollToTop />
       <Suspense fallback={null}>
         <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/dispensaries" element={<DispensariesPage />} />
-          <Route path="/dispensaries/state" element={<StatesPage />} />
-          <Route path="/dispensaries/best-in" element={<DispensariesPage />} />
-          <Route path="/dispensaries/:slug" element={<DispensaryPage />} />
-          <Route path="/brands" element={<BrandsPage />} />
-          <Route path="/strains" element={<StrainsPage />} />
-          <Route path="/strains/*" element={<StrainsPage />} />
-          <Route path="/deals" element={<DealsPage />} />
-          <Route path="/blog" element={<ArticlesPage />} />
-          <Route path="/concept" element={<ConceptShell />}>
-            <Route index element={<ConceptHome />} />
-            <Route path="learn" element={<ConceptLearn />} />
-            <Route path="dispensaries/:slug" element={<ConceptDispensary />} />
-            <Route path=":cat" element={<ConceptCategory />} />
-            <Route path=":cat/in/:country/:state" element={<ConceptCategory />} />
-            <Route path=":cat/in/:country/:state/:city" element={<ConceptCategory />} />
+          <Route path="/" element={<Shell />}>
+            <Route index element={<HomePage />} />
+            <Route path="learn" element={<LearnPage />} />
+            <Route path="blog" element={<Navigate to="/learn" replace />} />
+            <Route path="dispensaries/:slug" element={<DispensaryPage />} />
+            <Route path=":cat" element={<CategoryPage />} />
+            <Route path=":cat/in/:country/:state" element={<CategoryPage />} />
+            <Route path=":cat/in/:country/:state/:city" element={<CategoryPage />} />
+            <Route path="concept/*" element={<Navigate to="/" replace />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
-          <Route path="*" element={<Home />} />
         </Routes>
       </Suspense>
     </>

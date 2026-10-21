@@ -9,12 +9,12 @@ import { Badge } from './cards.jsx';
 import { CAT_ICONS } from './catIcons.jsx';
 
 const CATS = [
-  { label: 'Flower', to: '/concept/products?f=flower' },
-  { label: 'Pre-rolls', to: '/concept/products?f=pre-rolls' },
-  { label: 'Vapes', to: '/concept/products?f=vapes' },
-  { label: 'Edibles', to: '/concept/products?f=edibles' },
-  { label: 'Concentrates', to: '/concept/products?f=concentrates' },
-  { label: 'All', text: 'All products', to: '/concept/products' },
+  { label: 'Flower', to: '/products?f=flower' },
+  { label: 'Pre-rolls', to: '/products?f=pre-rolls' },
+  { label: 'Vapes', to: '/products?f=vapes' },
+  { label: 'Edibles', to: '/products?f=edibles' },
+  { label: 'Concentrates', to: '/products?f=concentrates' },
+  { label: 'All', text: 'All products', to: '/products' },
 ];
 
 function Row({ title, to, children }) {
@@ -44,7 +44,7 @@ export default function HomePage() {
   return (
     <div className="hm">
       <section className="hm-banners" data-reveal>
-        <Link to="/concept/deals" className="hm-banner hm-banner-ink">
+        <Link to="/deals" className="hm-banner hm-banner-ink">
           <span className="hm-banner-kicker"><Tag className="ic14" />Deals near {place.name}</span>
           <span className="hm-banner-title">Up to {bestDeal ? bestDeal.pct : 50}% off today</span>
           <span className="hm-banner-text">{site.dealsLive.toLocaleString()} deals read straight from live menus this morning.</span>
@@ -70,7 +70,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <Row title="Featured brands" to="/concept/brands">
+      <Row title="Featured brands" to="/brands">
         {brands.map((b) => (
           <Link key={b.slug} to={itemLink('brands', b)} className="hm-tile">
             <span className={`hm-tile-art hm-art-${b.pic % 4}`}><span className="hm-tile-initial">{b.initial}</span></span>
@@ -80,7 +80,7 @@ export default function HomePage() {
         ))}
       </Row>
 
-      <Row title={`Dispensaries near ${place.name}`} to="/concept/dispensaries">
+      <Row title={`Dispensaries near ${place.name}`} to="/dispensaries">
         {stores.map((d) => (
           <Link key={d.slug} to={itemLink('dispensaries', d)} className="hm-card">
             <span className="hm-card-top"><Badge tone="ink">{d.code}</Badge>{d.featured && <span className="frow-feat"><Star className="ic14" />Featured</span>}</span>
@@ -91,7 +91,7 @@ export default function HomePage() {
         ))}
       </Row>
 
-      <Row title="Deals today" to="/concept/deals">
+      <Row title="Deals today" to="/deals">
         {deals.map((d) => (
           <Link key={d.slug} to={itemLink('deals', d)} className="hm-card">
             <span className="hm-card-top"><Badge tone="teal">-{d.pct}%</Badge><span className="hm-card-ends"><Clock className="ic14" />{d.ends}</span></span>
@@ -102,7 +102,7 @@ export default function HomePage() {
         ))}
       </Row>
 
-      <Row title="Strains on menus near you" to="/concept/strains">
+      <Row title="Strains on menus near you" to="/strains">
         {strains.map((s) => (
           <Link key={s.slug} to={itemLink('strains', s)} className="hm-card">
             <span className="hm-card-top"><Badge tone={s.type}>{s.name[0]}</Badge><TypeChip type={s.type} small /></span>

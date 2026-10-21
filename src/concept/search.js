@@ -147,6 +147,6 @@ export const brandsAt = (slug) => { const d = bySlug[slug]; return d ? brands.fi
 
 // Where a click on a result goes: dispensaries open their page; everything else opens inside the finder.
 export function itemLink(cat, item) {
-  if (cat === 'dispensaries') return `/concept/dispensaries/${item.slug}`;
-  return `/concept/${cat}?sel=${encodeURIComponent(item.slug)}`;
+  if (cat === 'dispensaries') return `/dispensaries/${item.slug}`;
+  return `/${cat}?sel=${encodeURIComponent(item.slug)}`;
 }
