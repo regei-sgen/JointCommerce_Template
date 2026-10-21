@@ -81,9 +81,17 @@ export default function LeafletMap({
             marker.bindTooltip(esc(pt.name), { direction: 'top', className: 'pin-tip', opacity: 1 });
             const card = document.createElement('div');
             card.className = 'pin-card';
-            card.innerHTML = `<span class="bd bd-ink pin-card-bd">${code}</span><span class="pin-card-copy"><strong>${esc(pt.name)}</strong><span>${esc([pt.city, pt.status].filter(Boolean).join(' · '))}</span></span>`;
-            if (onSelectRef.current) { const b = document.createElement('button'); b.type = 'button'; b.className = 'btn ink sm pin-card-btn'; b.textContent = 'Open'; b.addEventListener('click', () => onSelectRef.current && onSelectRef.current(pt)); card.appendChild(b); }
-            marker.bindPopup(card, { closeButton: false, className: 'pin-pop', maxWidth: 320, offset: [0, -4] });
+            const miles = typeof pt.miles === 'number' ? `${pt.miles < 10 ? pt.miles.toFixed(1) : Math.round(pt.miles)} mi` : '';
+            const rating = typeof pt.rating === 'number' && pt.rating > 0 ? `<span class="pin-card-rating">★ ${pt.rating.toFixed(1)}${pt.reviews ? ` <em>(${pt.reviews})</em>` : ''}</span>` : '';
+            const chips = [pt.delivery ? 'Delivery' : '', pt.pickup !== false ? 'Pickup' : '', pt.verified ? 'Verified' : ''].filter(Boolean).map((c) => `<span class="pin-card-chip">${c}</span>`).join('');
+            card.innerHTML = `<div class="pin-card-head"><span class="bd bd-ink pin-card-bd">${code}</span><div class="pin-card-copy"><strong>${esc(pt.name)}</strong><span>${esc([pt.city, miles].filter(Boolean).join(' · '))}</span></div></div>` +
+              `<div class="pin-card-row">${rating}${pt.status ? `<span class="pin-card-live"><i></i>${esc(pt.status)}</span>` : ''}</div>` + (chips ? `<div class="pin-card-chips">${chips}</div>` : '');
+            if (onSelectRef.current) { const b = document.createElement('button'); b.type = 'button'; b.className = 'btn ink sm pin-card-btn'; b.textContent = 'Open menu'; b.addEventListener('click', () => onSelectRef.current && onSelectRef.current(pt)); card.appendChild(b); }
+            marker.bindPopup(card, { closeButton: true, className: 'pin-pop', maxWidth: 300, minWidth: 240, offset: [0, -6] });
+            // no name tooltip while the card is open
+            const tip = { direction: 'top', className: 'pin-tip', opacity: 1 };
+            marker.on('popupopen', () => { marker.closeTooltip(); marker.unbindTooltip(); });
+            marker.on('popupclose', () => { marker.bindTooltip(esc(pt.name), tip); });
           }
           markers.current.set(keyOf(pt), { marker, dom: true });
           return;
