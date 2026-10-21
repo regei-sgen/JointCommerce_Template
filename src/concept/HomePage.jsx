@@ -54,7 +54,7 @@ export default function HomePage() {
 
       <ScrollRow title="Browse by category" className="hm-cats">
         {CATS.map((c) => { const Ic = CAT_ICONS[c.label]; return (
-          <Link key={c.label} to={c.to} className="hm-cat"><span>{c.text || c.label}</span><Ic /></Link>
+          <Link key={c.label} to={c.to} className="hm-cat"><span>{c.text || c.label}</span><span className="hm-cat-ic"><Ic className="cat-glyph" /></span></Link>
         ); })}
       </ScrollRow>
 
