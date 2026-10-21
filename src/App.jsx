@@ -82,6 +82,8 @@ export default function App() {
             <Route path="learn" element={<ConceptLearn />} />
             <Route path="dispensaries/:slug" element={<ConceptDispensary />} />
             <Route path=":cat" element={<ConceptCategory />} />
+            <Route path=":cat/in/:country/:state" element={<ConceptCategory />} />
+            <Route path=":cat/in/:country/:state/:city" element={<ConceptCategory />} />
           </Route>
           <Route path="*" element={<Home />} />
         </Routes>

@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { Search, Pin, Close, ChevronRight, Star } from '../icons.jsx';
 import { CATS, CAT_KEYS, isCat, catInfo, search, itemLink } from './search.js';
 import { ItemBadge, itemSubtitle } from './cards.jsx';
+import { placePath } from './geo.js';
 
 // Category from the current URL (/concept/:cat); 'dispensaries' elsewhere.
 export function useFinderCat() {
@@ -39,7 +40,7 @@ export default function WhereToBuy({ place, onLocation }) {
     p.delete('sel');
     if (q) p.set('q', q); else p.delete('q');
     const qs = p.toString();
-    navigate(`/concept/${k}${qs ? `?${qs}` : ''}`);
+    navigate(`/concept/${k}${placePath(place)}${qs ? `?${qs}` : ''}`);
     setOpen(false);
     setIdx(-1);
   };

@@ -30,7 +30,32 @@ const PLACES = [
   { name: 'Boulder, CO', lat: 40.015, lng: -105.2705 },
   { name: 'Oklahoma City, OK', lat: 35.4676, lng: -97.5164 },
   { name: 'Albuquerque, NM', lat: 35.0844, lng: -106.6504 },
+  { name: 'Las Vegas, NV', lat: 36.1699, lng: -115.1398 },
+  { name: 'Reno, NV', lat: 39.5296, lng: -119.8138 },
 ];
+
+const STATES = { MA: 'Massachusetts', CA: 'California', CO: 'Colorado', MI: 'Michigan', OR: 'Oregon', NY: 'New York', NJ: 'New Jersey', IL: 'Illinois', WA: 'Washington', FL: 'Florida', OK: 'Oklahoma', NM: 'New Mexico', NV: 'Nevada' };
+export const COUNTRY_SLUG = 'united-states';
+export const slug = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+const abbrOf = (p) => (p.name.split(',')[1] || '').trim();
+const cityOf = (p) => p.name.split(',')[0].trim();
+
+// /in/united-states/<state>/<city> for a resolved place; '' for a place without a state (geolocation).
+export function placePath(p) {
+  const ab = p && abbrOf(p);
+  if (!ab || !STATES[ab]) return '';
+  return `/in/${COUNTRY_SLUG}/${slug(STATES[ab])}/${slug(cityOf(p))}`;
+}
+
+// The place a /in/<country>/<state>/<city?> path names, or null. A state alone resolves to its first listed city.
+export function placeFromPath(country, state, city) {
+  if (country !== COUNTRY_SLUG || !state) return null;
+  const ab = Object.keys(STATES).find((k) => slug(STATES[k]) === state);
+  if (!ab) return null;
+  const inState = PLACES.filter((p) => abbrOf(p) === ab);
+  if (!city) return inState[0] || null;
+  return inState.find((p) => slug(cityOf(p)) === city) || null;
+}
 
 const norm = (s) => String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 

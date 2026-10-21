@@ -11,6 +11,7 @@ and pointing the root routes at them, in its own commit.
 | --- | --- | --- |
 | `/concept` | `src/concept/HomePage.jsx` | Two promo tiles (deals, featured dispensary), category tiles, featured-brand squares, then scroll rows: dispensaries near the place, deals today, strains. No map on home |
 | `/concept/:cat` | `src/concept/CategoryPage.jsx` | The finder for `dispensaries`, `deals`, `brands`, `products` or `strains`, filling the viewport |
+| `/concept/:cat/in/united-states/:state/:city?` | `src/concept/CategoryPage.jsx` | The same finder at a named place, e.g. `/concept/dispensaries/in/united-states/nevada/las-vegas`. The path sets the shell's place; sidebar links, tab switches and the location popup keep the path. Unknown state or city redirects to `/concept/:cat`. Device geolocation has no slug and uses the plain path |
 | `/concept/dispensaries/:slug` | `src/concept/DispensaryConceptPage.jsx` | One store inside the shell: header, today's deals, menu with category/type filters and sort, strains and brands on the menu, map, hours, services, contact |
 | `/concept/learn` | `src/concept/LearnPage.jsx` | Articles as text rows |
 
