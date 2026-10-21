@@ -69,7 +69,7 @@ export default function Shell() {
 
       <div className="cx-main">
         <header className="cx-top">
-          <Link to="/concept" className="cx-top-brand" aria-label="JointCommerce home"><Wordmark height={18} /></Link>
+          <Link to="/concept" className="cx-top-brand" aria-label="JointCommerce home"><span className="brand-mark cx-top-mark" aria-hidden="true"><Leaf className="ic18" fill="#fff" /></span><Wordmark height={18} /></Link>
           <WhereToBuy place={place} onLocation={() => setModal('location')} />
           <div className="cx-acct">
             <button type="button" className="btn plain sm" onClick={() => setModal('login')}><User className="ic14" /><span className="nav-login-text">Log in</span></button>
