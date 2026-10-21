@@ -74,7 +74,7 @@ function Store_({ d, details, slug }) {
           {deals.length > 0 && (
             <section className="dp-sec" data-reveal>
               <h2 className="dp-h2"><Tag className="ic18" />Today's deals<span className="dcount">{deals.length}</span></h2>
-              <div className="dp-rows">{deals.map((x, i) => <DealRow key={x.slug} d={x} i={i} inStore />)}</div>
+              <div className="dp-rows dp-tiles">{deals.map((x, i) => <DealRow key={x.slug} d={x} i={i} inStore />)}</div>
             </section>
           )}
 
@@ -120,14 +120,14 @@ function Store_({ d, details, slug }) {
           {strains.length > 0 && (
             <section className="dp-sec" data-reveal style={{ '--i': 2 }}>
               <h2 className="dp-h2"><Leaf className="ic18" />Strains on the menu<span className="dcount">{strains.length}</span></h2>
-              <div className="dp-rows">{strains.map((s, i) => <StrainRow key={s.slug} s={s} i={i} />)}</div>
+              <div className="dp-rows dp-tiles">{strains.map((s, i) => <StrainRow key={s.slug} s={s} i={i} />)}</div>
             </section>
           )}
 
           {brands.length > 0 && (
             <section className="dp-sec" data-reveal style={{ '--i': 3 }}>
               <h2 className="dp-h2"><Star className="ic18" />Brands on the shelf<span className="dcount">{brands.length}</span></h2>
-              <div className="dp-rows">{brands.map((b, i) => <BrandRow key={b.slug} b={b} i={i} />)}</div>
+              <div className="dp-rows dp-tiles">{brands.map((b, i) => <BrandRow key={b.slug} b={b} i={i} />)}</div>
             </section>
           )}
 

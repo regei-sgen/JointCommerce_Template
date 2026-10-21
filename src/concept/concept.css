@@ -619,6 +619,10 @@
 .dp .frow.featured:hover, .dp .frow.featured.hot { background: var(--cx-tint); box-shadow: none; }
 .dp .frow.featured + .frow { margin-top: 0; }
 .dp .frow-feat { display: none; }
+/* deals, strains and brands on the store page: tiles across the width instead of one narrow column */
+.dp .dp-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr)); gap: 10px; }
+.dp .dp-tiles .frow { margin-top: 0; background: #fff; box-shadow: 0 0 0 1px var(--cx-line); }
+.dp .dp-tiles .frow:hover, .dp .dp-tiles .frow.hot { background: var(--cx-tint); box-shadow: 0 0 0 1px var(--cx-line-strong); }
 
 /* ===== night map: near-black green canvas, mint labels, pins glow teal ===== */
 .map-night .leaflet-container, .map-night .globe { background: #0d332c; }
