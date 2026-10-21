@@ -92,14 +92,16 @@ export function ProductRow({ p, i, hot, onHover }) {
   );
 }
 
-export function DealRow({ d, i, hot, onHover }) {
+// `inStore`: rendered on the store's own page, so the store name is left out of the foot.
+export function DealRow({ d, i, hot, onHover, inStore = false }) {
+  const ends = d.ends === 'Tonight' ? 'Ends tonight' : d.ends === 'Ongoing' ? 'Ongoing' : `Ends ${d.ends}`;
   return (
     <Row
       to={itemLink('deals', d)} id={d.slug} hot={hot} onHover={onHover} i={i} featured={d.featured}
       badge={<Badge tone="teal">-{d.pct}%</Badge>}
       title={d.name}
       meta={d.meta}
-      foot={<><span className="price"><strong>${d.price}</strong><s>${d.was}</s></span><span className="muted small"><Store className="ic14" />{d.store}</span><span className={`muted small${d.ends === 'Tonight' ? ' soon' : ''}`}><Clock className="ic14" />Ends {d.ends.toLowerCase()}</span></>}
+      foot={<><span className="price"><strong>${d.price}</strong>{d.was && <s>${d.was}</s>}</span>{!inStore && <span className="muted small"><Store className="ic14" />{d.store}</span>}<span className={`muted small${d.ends === 'Tonight' ? ' soon' : ''}`}><Clock className="ic14" />{ends}</span></>}
     />
   );
 }

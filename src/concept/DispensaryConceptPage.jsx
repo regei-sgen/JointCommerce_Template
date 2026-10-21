@@ -74,7 +74,7 @@ function Store_({ d, details, slug }) {
           {deals.length > 0 && (
             <section className="dp-sec" data-reveal>
               <h2 className="dp-h2"><Tag className="ic18" />Today's deals<span className="dcount">{deals.length}</span></h2>
-              <div className="dp-rows">{deals.map((x, i) => <DealRow key={x.slug} d={x} i={i} />)}</div>
+              <div className="dp-rows">{deals.map((x, i) => <DealRow key={x.slug} d={x} i={i} inStore />)}</div>
             </section>
           )}
 

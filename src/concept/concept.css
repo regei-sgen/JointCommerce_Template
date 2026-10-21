@@ -197,10 +197,10 @@
 .dp-grid { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 20px; align-items: start; margin-top: 20px; }
 .dp-main { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
 .dp-sec { border: 1px solid var(--cx-line); border-radius: 18px; background: #fff; padding: 18px 12px 12px; scroll-margin-top: calc(var(--top) + 12px); }
-.dp-h2 { margin: 0 8px 12px; font-size: 18px; font-weight: 800; letter-spacing: -0.02em; display: flex; align-items: center; gap: 8px; }
+.dp-h2 { margin: 0 12px 12px; font-size: 18px; font-weight: 800; letter-spacing: -0.02em; display: flex; align-items: center; gap: 8px; }
 .dp-h2 .ic18 { color: var(--teal-deep); }
 .dp-live { margin-left: auto; font-size: 12px; }
-.dp-filters { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 0 8px 10px; padding-bottom: 12px; border-bottom: 1px solid var(--cx-line); }
+.dp-filters { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 0 12px 10px; padding-bottom: 12px; border-bottom: 1px solid var(--cx-line); }
 .dp-filters .sort { margin-left: auto; }
 .dp-rows { display: flex; flex-direction: column; gap: 2px; }
 .menu-row { grid-template-columns: 44px minmax(0, 1fr) auto; }
@@ -210,11 +210,11 @@
 .menu-buy .price s { color: var(--muted); margin-left: 4px; font-size: 12px; }
 .btn.sm.menu-add { height: 34px; padding: 0 12px; font-size: 12px; border-radius: 10px; box-shadow: none; gap: 4px; }
 .menu-add .ic14 { margin: 0; }
-.dp .dabout { max-height: 92px; margin: 0 8px; }
+.dp .dabout { max-height: 92px; margin: 0 12px; }
 .dp .dabout.open { max-height: 2000px; }
 .dp .dabout p { font-size: 14px; }
-.dp .dmore { margin: 8px 8px 4px; }
-.dp-side { display: flex; flex-direction: column; gap: 12px; position: sticky; top: calc(var(--top) + 16px); max-height: calc(100vh - var(--top) - 32px); overflow-y: auto; scrollbar-width: thin; }
+.dp .dmore { margin: 8px 12px 4px; }
+.dp-side { display: flex; flex-direction: column; gap: 16px; position: sticky; top: calc(var(--top) + 16px); max-height: calc(100vh - var(--top) - 32px); overflow-y: auto; scrollbar-width: thin; }
 .dp-card { border: 1px solid var(--cx-line); border-radius: 18px; background: #fff; padding: 16px 18px; }
 .dp-map { padding: 0; overflow: hidden; height: 200px; position: relative; }
 .dp-leaflet { position: absolute; inset: 0; }
@@ -601,7 +601,7 @@
 .finder-links .chip .muted { font-weight: 500; }
 
 /* ===== store page: third-party live menu ===== */
-.menu-embed { display: flex; flex-direction: column; gap: 10px; margin: 0 8px; }
+.menu-embed { display: flex; flex-direction: column; gap: 10px; margin: 0 12px; }
 .menu-embed-cats { padding-bottom: 12px; border-bottom: 1px solid var(--cx-line); }
 .menu-embed-cats .chip { background: #fff; }
 .menu-embed-gate { margin: 0; }
@@ -610,6 +610,13 @@
 .menu-embed-frame { border: 1px solid var(--cx-line); border-radius: 14px; overflow: hidden; background: #fff; }
 .menu-embed-frame iframe { display: block; width: 100%; height: 1200px; border: 0; }
 .menu-embed-frame #dutchie--embed__container { min-height: 600px; }
+
+/* ===== row rhythm: raised cards never touch; a store's own rows carry no Featured mark ===== */
+.frow.featured + .frow.featured { margin-top: 6px; }
+.dp .frow.featured { background: transparent; box-shadow: none; }
+.dp .frow.featured:hover, .dp .frow.featured.hot { background: var(--cx-tint); box-shadow: none; }
+.dp .frow.featured + .frow { margin-top: 0; }
+.dp .frow-feat { display: none; }
 
 /* ===== breakpoints ===== */
 @media (max-width: 1200px) {

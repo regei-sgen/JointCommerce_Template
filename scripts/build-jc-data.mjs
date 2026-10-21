@@ -74,6 +74,7 @@ const dispensaries = [...seenIds.values()].map((d) => {
     type: d.dispensary_type && d.dispensary_type.title ? d.dispensary_type.title : '',
     products: details[d.slug] ? num(details[d.slug].menu_item_count) || 0 : 0,
     menu: embed ? embed.p : '',
+    featured: !!(d.is_pinned || d.is_premium),
   });
 });
 const dBySlug = Object.fromEntries(dispensaries.map((d) => [d.slug, d]));
