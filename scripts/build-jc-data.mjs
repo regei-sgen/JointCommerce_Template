@@ -3,8 +3,9 @@
 import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1')), '..');
+const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const IN = path.join(ROOT, 'data', 'crawl');
 const OUT = path.join(ROOT, 'public', 'data', 'jc');
 await mkdir(OUT, { recursive: true });
@@ -34,7 +35,7 @@ const menus = (await read('menus.json')) || {};
 const dispensaries = rawD.filter((d) => d.slug && d.name).map((d) => clean({
   slug: d.slug, name: d.name, code: initials(d.name), city: d.city || '', state: d.state || '', zip: d.zip_code || '',
   lat: num(d.latitude), lng: num(d.longitude), rating: num(d.rating) || 0, reviews: num(d.review_count) || 0,
-  open: !!d.is_open, delivery: !!d.has_delivery, pickup: d.has_pickup !== false, verified: !!d.is_verified, claimed: !!d.is_claimed,
+  open: !!d.is_open, status: d.is_open ? 'Open now' : 'Closed now', delivery: !!d.has_delivery, pickup: d.has_pickup !== false, verified: !!d.is_verified, claimed: !!d.is_claimed,
   pinned: !!d.is_pinned, premium: !!d.is_premium, phone: d.phone_number || '', website: d.website || '', logo: d.logo || '',
   type: d.dispensary_type && d.dispensary_type.title ? d.dispensary_type.title : '',
   products: details[d.slug] ? num(details[d.slug].menu_item_count) || 0 : 0,
@@ -102,7 +103,7 @@ const strains = rawS.filter((s) => s.slug && s.name).map((s) => clean({
   slug: s.slug, name: s.name, type: TYPE(s.strain_type), typeLabel: s.strain_type_display || '', thc: num(s.thc_max) || num(s.thc_min) || 0, cbd: num(s.cbd_max) || 0,
   effects: (s.top_effects || []).map((e) => e.effect && e.effect.name).filter(Boolean).slice(0, 3),
   flavors: (s.top_flavors || []).map((f) => (f.flavor && f.flavor.name) || f.name).filter(Boolean).slice(0, 3),
-  lineage: '', menus: (storesOfStrain[s.slug] || []).length, isNew: false, rating: num(s.avg_rating) || 0, blurb: (s.short_description || '').slice(0, 140), featured: false,
+  lineage: s.strain_type_display || '', menus: (storesOfStrain[s.slug] || []).length, isNew: false, rating: num(s.avg_rating) || 0, blurb: (s.short_description || '').slice(0, 140), featured: false,
 }));
 
 // ---- details (hours, about, amenities, contact) for crawled stores ----

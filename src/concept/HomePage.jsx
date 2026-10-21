@@ -35,12 +35,21 @@ export default function HomePage() {
   return (
     <div className="hm">
       <section className="hm-banners" data-reveal>
-        <Link to="/deals" className="hm-banner hm-banner-ink">
-          <span className="hm-banner-kicker"><Tag className="ic14" />Deals near {place.name}</span>
-          <span className="hm-banner-title">Up to {bestDeal ? bestDeal.pct : 50}% off today</span>
-          <span className="hm-banner-text">{site.dealsLive.toLocaleString()} deals read straight from live menus this morning.</span>
-          <span className="btn sm hm-banner-btn">Shop deals<ChevronRight className="ic14 ic-after" /></span>
-        </Link>
+        {bestDeal ? (
+          <Link to="/deals" className="hm-banner hm-banner-ink">
+            <span className="hm-banner-kicker"><Tag className="ic14" />Deals near {place.name}</span>
+            <span className="hm-banner-title">Up to {bestDeal.pct}% off today</span>
+            <span className="hm-banner-text">{res.deals.length.toLocaleString()} deals read straight from live menus.</span>
+            <span className="btn sm hm-banner-btn">Shop deals<ChevronRight className="ic14 ic-after" /></span>
+          </Link>
+        ) : (
+          <Link to="/dispensaries" className="hm-banner hm-banner-ink">
+            <span className="hm-banner-kicker"><Store className="ic14" />Dispensaries near {place.name}</span>
+            <span className="hm-banner-title">{res.dispensaries.length.toLocaleString()} dispensaries on the map</span>
+            <span className="hm-banner-text">Hours, delivery, pickup and reviews for every listing, nearest first.</span>
+            <span className="btn sm hm-banner-btn">Open the map<ChevronRight className="ic14 ic-after" /></span>
+          </Link>
+        )}
         {top && (
           <Link to={itemLink('dispensaries', top)} className="hm-banner hm-banner-light">
             <span className="hm-banner-kicker"><Star className="ic14" />Featured dispensary</span>
@@ -58,7 +67,7 @@ export default function HomePage() {
         ); })}
       </ScrollRow>
 
-      <Row title="Featured brands" to="/brands">
+      {brands.length > 0 && <Row title="Featured brands" to="/brands">
         {brands.map((b) => (
           <Link key={b.slug} to={itemLink('brands', b)} className="hm-tile">
             <span className={`hm-tile-art hm-art-${b.pic % 4}`}><span className="hm-tile-initial">{b.initial}</span></span>
@@ -66,7 +75,7 @@ export default function HomePage() {
             <span className="hm-tile-meta"><Store className="ic14" />{b.menus} menus<span className="dot" />{b.category}</span>
           </Link>
         ))}
-      </Row>
+      </Row>}
 
       <Row title={`Dispensaries near ${place.name}`} to="/dispensaries">
         {stores.map((d) => (
@@ -79,7 +88,7 @@ export default function HomePage() {
         ))}
       </Row>
 
-      <Row title="Deals today" to="/deals">
+      {deals.length > 0 && <Row title="Deals today" to="/deals">
         {deals.map((d) => (
           <Link key={d.slug} to={itemLink('deals', d)} className="hm-card">
             <span className="hm-card-top"><Badge tone="teal">-{d.pct}%</Badge><span className="hm-card-ends"><Clock className="ic14" />{d.ends}</span></span>
@@ -88,9 +97,9 @@ export default function HomePage() {
             <span className="hm-card-foot"><span className="price"><strong>${d.price}</strong><s>${d.was}</s></span><span className="muted small"><Store className="ic14" />{d.store}</span></span>
           </Link>
         ))}
-      </Row>
+      </Row>}
 
-      <Row title="Strains on menus near you" to="/strains">
+      <Row title="Strains" to="/strains">
         {strains.map((s) => (
           <Link key={s.slug} to={itemLink('strains', s)} className="hm-card">
             <span className="hm-card-top"><Badge tone={s.type}>{s.name[0]}</Badge><TypeChip type={s.type} small /></span>

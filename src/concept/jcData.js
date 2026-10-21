@@ -13,7 +13,8 @@ export function loadData() {
   promise = (async () => {
     try {
       const got = await Promise.all(FILES.map(async (n) => {
-        const r = await fetch(`${BASE}${n}.json`, { cache: 'force-cache' });
+        const r = await fetch(`${BASE}${n}.json`);
+        if (!(r.headers.get('content-type') || '').includes('json')) throw new Error(`${n}.json not json`);
         if (!r.ok) throw new Error(`${n}.json ${r.status}`);
         return r.json();
       }));

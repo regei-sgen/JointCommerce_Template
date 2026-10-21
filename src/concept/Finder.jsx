@@ -3,7 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import LeafletMap from '../components/LeafletMap.jsx';
 import { useReveal } from '../hooks/useReveal.js';
 import { Map as MapIcon, ChevronLeft, Store, Pin } from '../icons.jsx';
-import { search, find, stockedAt, catInfo, FILTERS, SORTS, defaultSort, itemLink } from './search.js';
+import { search, find, stockedAt, catInfo, FILTERS, SORTS, defaultSort, itemLink, DATA } from './search.js';
 import { ResultRow, DispensaryRow, ItemBadge, itemSubtitle } from './cards.jsx';
 
 // List + map for one category. State lives in the URL: q (text), f (filter keys, repeatable),
@@ -112,7 +112,7 @@ export default function Finder({ cat, place, home = false }) {
               {all.length > list.length && <button type="button" className="finder-more" onClick={() => setLimit((l) => l + PAGE)}>Show {Math.min(PAGE, all.length - list.length)} more<span className="muted"> · {list.length} of {all.length}</span></button>}
             </>
           ) : (
-            <Empty text={q ? `Nothing matches “${q}”. Try another word or clear a filter.` : 'Nothing matches these filters.'}>
+            <Empty text={DATA[cat].length === 0 ? `No ${info.label.toLowerCase()} published yet.` : q ? `Nothing matches “${q}”. Try another word or clear a filter.` : 'Nothing matches these filters.'}>
               {(q || filters.length > 0) && <Link to={`/${cat}`} className="link link-sm">Clear search and filters</Link>}
             </Empty>
           )}
