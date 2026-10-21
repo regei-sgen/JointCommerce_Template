@@ -63,7 +63,7 @@ export default function LeafletMap({
       points.forEach((pt) => {
         if (pins === 'dom') {
           const marker = L.marker([pt.lat, pt.lng], {
-            icon: L.divIcon({ className: 'pin', html: '<i class="pin-halo"></i><i class="pin-dot"></i>', iconSize: [44, 44], iconAnchor: [22, 22], popupAnchor: [0, -14] }),
+            icon: L.divIcon({ className: `pin${pt.featured ? ' featured' : ''}`, html: '<i class="pin-halo"></i><i class="pin-dot"></i>', iconSize: [44, 44], iconAnchor: [22, 22], popupAnchor: [0, -14] }),
             keyboard: false, interactive,
           }).addTo(m);
           if (interactive) marker.bindPopup(`<strong>${pt.name}</strong><br>${pt.city} · ${pt.status}`);
