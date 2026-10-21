@@ -303,7 +303,7 @@
   .wtb { display: contents; }
   .cx-top-brand { order: 1; }
   .cx-top-brand .wordmark { display: none; }
-  .cx-top-mark { display: block; }
+  .cx-top-mark { display: block; width: 28px; height: 28px; border-radius: 8px; }
   .wtb-field { order: 2; flex: 1 1 120px; min-width: 0; }
   .wtb-field input { height: 38px; padding-left: 34px; font-size: 13px; }
   .wtb-field > .ic18 { left: 10px; }
