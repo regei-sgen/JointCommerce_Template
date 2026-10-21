@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Search, Pin, Close, ChevronRight } from '../icons.jsx';
+import { Search, Pin, Close, ChevronRight, Star } from '../icons.jsx';
 import { CATS, CAT_KEYS, isCat, catInfo, search, itemLink } from './search.js';
 import { ItemBadge, itemSubtitle } from './cards.jsx';
 
@@ -95,7 +95,7 @@ export default function WhereToBuy({ place, onLocation }) {
                   {head}
                   <button type="button" tabIndex={-1} id={`wtb-opt-${i}`} role="option" aria-selected={idx === i} className={`wtb-item${idx === i ? ' on' : ''}`} onMouseDown={(e) => e.preventDefault()} onClick={() => pick(r)}>
                     <ItemBadge cat={r.k} item={r.item} />
-                    <span className="wtb-item-copy"><span className="wtb-item-title">{r.item.name}</span><span className="wtb-item-meta">{itemSubtitle(r.k, r.item)}</span></span>
+                    <span className="wtb-item-copy"><span className="wtb-item-title">{r.item.name}{r.item.featured && <span className="frow-feat"><Star className="ic14" />Featured</span>}</span><span className="wtb-item-meta">{itemSubtitle(r.k, r.item)}</span></span>
                   </button>
                 </div>
               );

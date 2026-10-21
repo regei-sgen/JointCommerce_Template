@@ -34,7 +34,8 @@ const PLACES = [
 
 const norm = (s) => String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 
-// "Boston", "boston ma", "Boston, MA" or a zip-like string → the matching place, or null.
+// "Boston", "boston ma" or "Boston, MA" → the matching place, or null. Prefix matches need
+// three or more characters; zip codes are not in the list and resolve to null.
 export function resolvePlace(q) {
   const n = norm(q);
   if (!n) return null;
@@ -42,10 +43,9 @@ export function resolvePlace(q) {
   if (exact) return exact;
   const city = PLACES.find((p) => norm(p.name.split(',')[0]) === n);
   if (city) return city;
+  if (n.length < 3) return null;
   return PLACES.find((p) => norm(p.name).startsWith(n)) || null;
 }
-
-export const placeNames = PLACES.map((p) => p.name);
 
 // Great-circle distance in miles.
 export function milesBetween(a, b) {

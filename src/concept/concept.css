@@ -48,7 +48,7 @@
 .wtb-item:hover, .wtb-item.on { background: var(--ground); }
 .wtb-item .bd { width: 32px; height: 32px; font-size: 12px; border-radius: 9px; }
 .wtb-item-copy { display: flex; flex-direction: column; min-width: 0; }
-.wtb-item-title { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wtb-item-title { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: inline-flex; align-items: center; gap: 6px; }
 .wtb-item-meta { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .wtb-all { margin-top: 4px; border-top: 1px solid var(--cx-line); border-radius: 0 0 10px 10px; padding-top: 12px; color: var(--teal-deep); font-weight: 700; font-size: 13px; gap: 8px; }
 .wtb-all .ic18 { color: var(--teal-deep); }
@@ -137,7 +137,7 @@
 .pin.hot { z-index: 1000; }
 @media (prefers-reduced-motion: reduce) { .pin-halo { animation: none; } .pin-dot { transition: none; } }
 
-/* light map
+/* light map */
 .tiles-light { filter: saturate(0.8); }
 .finder .leaflet-container { background: #e9eeec; }
 .finder .leaflet-control-attribution { background: rgba(255, 255, 255, 0.75) !important; color: var(--muted) !important; }
