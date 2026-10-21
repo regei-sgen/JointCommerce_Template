@@ -1,11 +1,11 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { Link, Navigate, useOutletContext, useParams } from 'react-router-dom';
+import { Link, Navigate, useNavigate, useOutletContext, useParams } from 'react-router-dom';
 import { typeLabel } from '../data.js';
-import { Pin, Phone, Globe, Star, Clock, Store, ShieldCheck, Truck, Navigate as NavIcon, ChevronLeft, ChevronDown, Tag, Leaf, Info, CreditCard, Banknote, Check } from '../icons.jsx';
+import { Pin, Phone, Globe, Star, Clock, Store, ShieldCheck, Truck, Navigate as NavIcon, ChevronLeft, ChevronDown, Tag, Leaf, Info, CreditCard, Banknote, Check, Close } from '../icons.jsx';
 import LeafletMap from '../components/LeafletMap.jsx';
 import { LiveDot, TypeChip } from '../components/ui.jsx';
 import { useReveal } from '../hooks/useReveal.js';
-import { find, menuFor, embedFor, dealsAt, strainsAt, brandsAt, detailsFor, isDemo } from './search.js';
+import { find, search, menuFor, embedFor, dealsAt, strainsAt, brandsAt, detailsFor, isDemo, itemLink } from './search.js';
 import { fmtMiles } from './geo.js';
 import { Badge, DealRow, StrainRow, BrandRow } from './cards.jsx';
 
@@ -18,14 +18,21 @@ const SORTS = { price: ['Lowest price', (a, b) => a.price - b.price], thc: ['Hig
 // category/type filters and sort, strains and brands on the menu, and a side column (map, hours, contact).
 export default function DispensaryConceptPage() {
   const { slug } = useParams();
-  const { place } = useOutletContext();
+  const { place, mapMode = false, setMapMode } = useOutletContext();
   const d = find('dispensaries', slug, place);
   if (!d) return <Navigate to="/dispensaries" replace />;
   // key={slug}: a slug change remounts the body (filter state, side map, reveals).
-  return <Store_ key={slug} d={d} details={detailsFor(slug, d)} slug={slug} />;
+  return <Store_ key={slug} d={d} details={detailsFor(slug, d)} slug={slug} mapMode={mapMode} setMapMode={setMapMode} />;
 }
 
-function Store_({ d, details, slug }) {
+function Store_({ d, details, slug, mapMode, setMapMode }) {
+  const navigate = useNavigate();
+  // Map mode: the map behind the floating panel carries this store (hot) and its nearest neighbours.
+  const nearby = useMemo(() => {
+    if (!mapMode || typeof d.lat !== 'number') return [d];
+    const list = search('', 'dispensaries', { origin: { lat: d.lat, lng: d.lng } }).dispensaries.filter((x) => typeof x.lat === 'number' && x.slug !== slug);
+    return [d, ...list.slice(0, 40)];
+  }, [mapMode, slug]); // eslint-disable-line react-hooks/exhaustive-deps
   const [cat, setCat] = useState('All');
   const [type, setType] = useState(null);
   const [sort, setSort] = useState('price');
@@ -50,6 +57,13 @@ function Store_({ d, details, slug }) {
   useReveal([cat, type, sort, week]);
 
   return (
+    <>
+    {mapMode && typeof d.lat === 'number' && (
+      <div className="dp-bgmap">
+        <LeafletMap className="dp-bgmap-leaflet" tiles="streets" pins="dom" eager points={nearby} hot={d.slug} center={[d.lat, d.lng]} zoom={13} focus={{ lat: d.lat, lng: d.lng }} focusMode="ensure" globeBelow={4} onSelect={(pt) => navigate(itemLink('dispensaries', pt))} ariaLabel={`Map around ${d.name}`} />
+        <button type="button" className="map-mode-btn" aria-pressed="true" onClick={() => setMapMode && setMapMode(false)}><Close className="ic14" />Exit map mode</button>
+      </div>
+    )}
     <div className="dp">
       <nav className="dp-crumbs" aria-label="Breadcrumb"><Link to="/dispensaries"><ChevronLeft className="ic14" />Dispensaries</Link></nav>
 
@@ -174,6 +188,7 @@ function Store_({ d, details, slug }) {
         </aside>
       </div>
     </div>
+    </>
   );
 }
 

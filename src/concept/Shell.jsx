@@ -37,8 +37,8 @@ function Item({ item, className, location, locPath }) {
 }
 
 // Layout: fixed left sidebar (categories), sticky top bar (search tool, location, account), content.
-// Finder routes: /:cat and /:cat/in/:country/:state/:city? (not a store page, not Learn).
-const FINDER_RE = /^\/(dispensaries|deals|brands|products|strains)(\/in\/[^?#]*)?\/?$/;
+// Map routes: /:cat, /:cat/in/:country/:state/:city? and /dispensaries/:slug (not Home, not Learn).
+const FINDER_RE = /^\/(dispensaries|deals|brands|products|strains)(\/in\/[^?#]*|\/[^/?#]+)?\/?$/;
 
 // `place` ({ name, lat, lng }) is the origin every distance and heading uses.
 export default function Shell() {
@@ -56,8 +56,8 @@ export default function Shell() {
     return () => document.documentElement.classList.remove('cx-on');
   }, []);
 
-  // Map mode: on finder routes the map fills the viewport and the chrome floats over it (html.cx-map).
-  // The preference persists in localStorage; Escape leaves it. Store pages and Learn never use it.
+  // Map mode: on finder and store routes the map fills the viewport and the chrome floats over it
+  // (html.cx-map). The preference persists in localStorage; Escape leaves it. Home and Learn never use it.
   const [mapPref, setMapPref] = useState(() => { try { return localStorage.getItem('jc.mapMode') === '1'; } catch { return false; } });
   const onFinder = FINDER_RE.test(location.pathname);
   const mapMode = mapPref && onFinder;
