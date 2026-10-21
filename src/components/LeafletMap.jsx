@@ -75,8 +75,11 @@ export default function LeafletMap({
         zoomAnimation: true,
       });
       m.attributionControl.setPrefix(false); // corner label carries the tile credit only, no "Leaflet" prefix
-      if (tiles === 'positron') L.tileLayer(TILES.positron, { attribution: ATTR_CARTO, subdomains: 'abcd', maxZoom: MAX_ZOOM, className: 'tiles-positron', updateWhenIdle: true, keepBuffer: 1 }).addTo(m);
-      else L.tileLayer(TILES[tiles] || TILES.dark, { attribution: ATTR, maxZoom: MAX_ZOOM, className: tiles === 'light' ? 'tiles-light' : tiles === 'streets' ? 'tiles-streets' : tiles === 'topo' ? 'tiles-topo' : 'tiles-ink', updateWhenIdle: true, keepBuffer: 1 }).addTo(m);
+      // detectRetina: on HiDPI screens Leaflet requests tiles one zoom deeper and draws them at half size, and it
+      // lowers the layer's maxZoom by one; MAX_ZOOM + 1 keeps the layer drawing up to the map's own MAX_ZOOM.
+      const tileOpts = { maxZoom: MAX_ZOOM + 1, detectRetina: true, updateWhenIdle: true, keepBuffer: 1 };
+      if (tiles === 'positron') L.tileLayer(TILES.positron, { ...tileOpts, attribution: ATTR_CARTO, subdomains: 'abcd', className: 'tiles-positron' }).addTo(m);
+      else L.tileLayer(TILES[tiles] || TILES.dark, { ...tileOpts, attribution: ATTR, className: tiles === 'light' ? 'tiles-light' : tiles === 'streets' ? 'tiles-streets' : tiles === 'topo' ? 'tiles-topo' : 'tiles-ink' }).addTo(m);
       points.forEach((pt) => {
         if (pins === 'dom') {
           const code = esc((pt.code || String(pt.name || '?').slice(0, 2)).slice(0, 3).toUpperCase());
