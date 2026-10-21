@@ -28,11 +28,11 @@ const byName = (name) => dispensaries.find((d) => d.name === name);
 
 export const brands = allBrands.map((b) => ({ ...b, featured: FEATURED.has(b.slug) }));
 export const strains = allStrains.map((s) => ({ ...s, slug: slugify(s.name), featured: FEATURED.has(slugify(s.name)) }));
-export const deals = allDeals.map((d, i) => ({ ...d, slug: `deal-${slugify(d.name)}-${i}`, storeSlug: byName(d.store)?.slug }));
+export const deals = allDeals.map((d, i) => { const storeSlug = byName(d.store)?.slug; return { ...d, slug: `deal-${slugify(d.name)}-${i}`, storeSlug, featured: FEATURED.has(storeSlug) }; });
 export const products = [
   ...deals.map((d) => ({ ...d, slug: `p-${d.slug}` })),
   ...dispensaryDetails.hashery.menuHighlights.map((m, i) => ({
-    name: m.name, meta: m.meta, price: m.price, type: m.type, thc: m.thc, store: 'Hashery', storeSlug: 'hashery', slug: `p-hashery-${slugify(m.name)}-${i}`,
+    name: m.name, meta: m.meta, price: m.price, type: m.type, thc: m.thc, store: 'Hashery', storeSlug: 'hashery', slug: `p-hashery-${slugify(m.name)}-${i}`, featured: FEATURED.has('hashery'),
     category: { 'Pre-roll': 'Pre-rolls', Vape: 'Vapes', Edible: 'Edibles' }[m.meta.split(' · ')[0]] || m.meta.split(' · ')[0],
   })),
 ];

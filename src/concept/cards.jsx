@@ -69,7 +69,7 @@ export function StrainRow({ s, i, hot, onHover }) {
 export function ProductRow({ p, i, hot, onHover }) {
   return (
     <Row
-      to={itemLink('products', p)} id={p.slug} hot={hot} onHover={onHover} i={i}
+      to={itemLink('products', p)} id={p.slug} hot={hot} onHover={onHover} i={i} featured={p.featured}
       badge={p.pct ? <Badge tone="teal">-{p.pct}%</Badge> : <Badge tone={p.type || 'mint'}>{p.category[0]}</Badge>}
       title={p.name}
       meta={p.meta}
@@ -81,7 +81,7 @@ export function ProductRow({ p, i, hot, onHover }) {
 export function DealRow({ d, i, hot, onHover }) {
   return (
     <Row
-      to={itemLink('deals', d)} id={d.slug} hot={hot} onHover={onHover} i={i}
+      to={itemLink('deals', d)} id={d.slug} hot={hot} onHover={onHover} i={i} featured={d.featured}
       badge={<Badge tone="teal">-{d.pct}%</Badge>}
       title={d.name}
       meta={d.meta}

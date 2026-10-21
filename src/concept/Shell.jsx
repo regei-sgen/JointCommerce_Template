@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
 import Wordmark from '../components/Wordmark.jsx';
 import { Home, Store, Truck, Tag, Star, Grid, Leaf, Book, User } from '../icons.jsx';
@@ -35,6 +35,10 @@ export default function Shell() {
   const [loc, setLoc] = useState('Boston, MA');
   const [modal, setModal] = useState(null); // 'location' | 'login' | 'signup'
   const hide = () => setModal(null);
+  useEffect(() => {
+    document.documentElement.classList.add('cx-on');
+    return () => document.documentElement.classList.remove('cx-on');
+  }, []);
 
   return (
     <div className="cx">

@@ -220,7 +220,11 @@
   .frow-title { font-size: 14px; }
   .frow-aside .frow-go { display: none; }
 }
+/* modals portaled to <body> while the shell is mounted: flat ink panel instead of the leaf photo */
+html.cx-on .modal-aside-photo { background: linear-gradient(160deg, var(--ink-3) 0%, var(--ink) 100%); filter: none; }
+
 @media (prefers-reduced-motion: reduce) {
   .wtb-drop { animation: none; }
-  .frow, .cx-link { transition: none; }
+  .frow, .cx-link, .wtb-tabs button, .wtb-field input, .wtb-loc, .wtb-item, .wtb-clear { transition: none; }
+  .cx .trust-dot { animation: none; }
 }
