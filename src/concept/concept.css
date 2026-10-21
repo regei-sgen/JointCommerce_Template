@@ -380,6 +380,65 @@
 .cx-tab { font-weight: 600; letter-spacing: 0; }
 .cx-tab.on { color: var(--teal-deep); background: var(--mint); }
 
+/* ===== restraint: teal marks only what is live (open dot, pins, legend) and the primary action =====
+   Everything else is ink or grey. */
+.cx .live { color: var(--ink); font-weight: 600; }
+.cx .live i { background: var(--teal); box-shadow: 0 0 0 3px rgba(20, 179, 138, 0.18); }
+.cx .soon { color: var(--ink) !important; font-weight: 700; }
+.cx .thc { color: var(--muted); font-weight: 600; }
+.cx .rating .ic14, .cx .frow-meta .rating .ic14, .cx .dp-meta .rating .ic14 { color: var(--ink); fill: var(--ink); }
+.cx .frow-verified, .cx .dp-verified { color: var(--muted); }
+.cx .dp-verified { background: var(--cx-tint); color: var(--muted); }
+.frow-feat { color: var(--ink); }
+.frow-feat .ic14 { fill: var(--ink); }
+.finder-title em, .finder-sub em { color: var(--ink); }
+.finder-legend i { background: var(--teal); }
+.col-title .ic18, .dp-h2 .ic18, .dp-h3 .ic18, .learn-title .ic18, .finder-empty .ic24 { color: var(--muted); }
+.col-count .trust-num { color: var(--ink); }
+.col-more { color: var(--ink); }
+.col-more .ic14 { color: var(--muted); }
+.cx .link, .cx .link-sm { color: var(--ink); }
+.wtb-all, .wtb-all .ic18 { color: var(--ink); }
+.wtb-loc .ic14 { color: var(--muted); }
+.wtb-loc:hover { border-color: var(--cx-line-strong); background: var(--cx-tint); }
+.finder-chips .chip-btn:hover, .dp-filters .chip-btn:hover { border-color: var(--cx-line-strong); background: var(--cx-tint); }
+.cx .chip-btn .ic14 { color: var(--muted); }
+.cx .chip-btn.on .ic14 { color: #fff; }
+.cx-link.on .ic18 { color: #fff; opacity: 0.9; }
+.cx-tab.on { color: var(--ink); background: var(--cx-tint); }
+.frow-go { color: var(--muted); }
+.cx .dcount { background: var(--cx-tint); color: var(--muted); }
+.cx .dp-chips .chip .ic14 { color: var(--muted); }
+
+/* badges and type chips: ink for the strongest, grey for the rest, one mint for sativa only */
+.bd-mint, .bd-hyb { background: var(--cx-tint); color: var(--ink); }
+.bd-teal { background: var(--ink); color: #fff; }
+.bd-sat { background: var(--mint); color: var(--teal-deep); }
+.bd-ind { background: var(--ink); color: #fff; }
+.cx .chip.hyb { background: var(--cx-tint); color: var(--ink); }
+.cx .chip.sat { background: var(--mint); color: var(--teal-deep); }
+.cx .chip.ind { background: var(--ink); color: #fff; }
+.cx .chip.new-chip, .cx .frow .chip.new-chip { background: var(--ink); color: #fff; }
+.cx .chip.new-chip .ic14 { color: #fff; }
+
+/* buttons: one primary (ink). Add is an outline. */
+.btn.sm.menu-add { background: #fff; color: var(--ink); box-shadow: inset 0 0 0 1px var(--cx-line-strong); }
+.btn.sm.menu-add:hover { background: var(--ink); color: #fff; box-shadow: none; }
+.btn.sm.menu-add .ic14 { color: inherit; }
+.dp-actions .btn.ghost:hover { border-color: var(--ink); background: #fff; }
+
+/* map: pins stay teal (live things), hovered pin ink */
+.pin-dot { background: var(--teal); border-color: #fff; }
+.pin-halo { background: rgba(20, 179, 138, 0.14); }
+.pin.featured .pin-dot { box-shadow: 0 0 0 2px rgba(11, 43, 38, 0.25), 0 4px 10px -2px rgba(11, 43, 38, 0.35); }
+.finder .leaflet-bar a:hover { background: var(--cx-tint); color: var(--ink); }
+
+/* typeahead + search field focus: ink focus, not teal */
+.wtb-field input:focus { border-color: var(--ink); box-shadow: 0 0 0 3px rgba(11, 43, 38, 0.1); }
+.cx :focus-visible { outline-color: var(--ink); }
+.dp .dhours li.today > span:last-child { color: var(--ink); }
+.dp .dhours .chip-sm { background: var(--cx-tint); color: var(--ink); }
+
 /* ===== breakpoints ===== */
 @media (max-width: 1200px) {
   .cx { --sb: 76px; }
