@@ -3,7 +3,7 @@
 
 .cx-sb { position: fixed; inset: 0 auto 0 0; width: var(--sb); background: #fff; border-right: 1px solid var(--cx-line); display: flex; flex-direction: column; padding: 20px 14px 16px; z-index: 50; overflow-y: auto; scrollbar-width: thin; }
 .cx-brand { display: flex; align-items: center; gap: 10px; padding: 4px 10px 22px; color: var(--ink); }
-.cx-mark { display: none; }
+.cx-mark { display: none; width: 36px; height: 36px; border-radius: 10px; }
 .cx-nav { display: flex; flex-direction: column; gap: 2px; }
 .cx-link { display: flex; align-items: center; gap: 12px; height: 42px; padding: 0 12px; border-radius: 12px; font-size: 14px; font-weight: 600; color: var(--muted); transition: background-color 0.25s, color 0.25s, transform 0.3s var(--ease-soft); }
 .cx-link .ic18 { opacity: 0.8; transition: opacity 0.25s, color 0.25s; }
@@ -15,7 +15,7 @@
 .cx-main { margin-left: var(--sb); min-height: 100vh; display: flex; flex-direction: column; }
 .cx-top { position: sticky; top: 0; z-index: 40; min-height: var(--top); display: flex; align-items: center; gap: 14px; padding: 0 24px; background: rgba(255, 255, 255, 0.88); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-bottom: 1px solid var(--cx-line); }
 .cx-top-brand { display: none; color: var(--ink); align-items: center; }
-.cx-top-mark { display: none; width: 36px; height: 36px; border-radius: 11px; flex: none; }
+.cx-top-mark { display: none; width: 36px; height: 36px; border-radius: 10px; flex: none; }
 .cx-acct { margin-left: auto; display: flex; align-items: center; gap: 6px; flex: none; }
 .cx-acct .btn.sm { height: 38px; border-radius: 11px; font-size: 13px; padding: 0 14px; gap: 6px; }
 .cx-acct .btn .ic14 { margin: 0; }
@@ -244,7 +244,7 @@
   .cx-sb { padding: 18px 10px 14px; }
   .cx-brand { justify-content: center; padding: 4px 0 18px; }
   .cx-brand .wordmark, .cx-link span, .cx-sb-foot { display: none; }
-  .cx-mark { display: inline-flex; }
+  .cx-mark { display: block; }
   .cx-link { justify-content: center; width: 48px; height: 48px; padding: 0; margin: 0 auto; }
   .finder { grid-template-columns: 400px minmax(0, 1fr); }
   .cols { grid-template-columns: 1fr 1fr; }
@@ -303,7 +303,7 @@
   .wtb { display: contents; }
   .cx-top-brand { order: 1; }
   .cx-top-brand .wordmark { display: none; }
-  .cx-top-mark { display: inline-flex; }
+  .cx-top-mark { display: block; }
   .wtb-field { order: 2; flex: 1 1 120px; min-width: 0; }
   .wtb-field input { height: 38px; padding-left: 34px; font-size: 13px; }
   .wtb-field > .ic18 { left: 10px; }

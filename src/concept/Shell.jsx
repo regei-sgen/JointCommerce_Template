@@ -7,6 +7,9 @@ import WhereToBuy from './WhereToBuy.jsx';
 import { DEFAULT_PLACE, resolvePlace } from './geo.js';
 import './concept.css';
 
+// The logo mark from public/img, resolved against Vite's base so it also works on a subpath host.
+const MARK = `${import.meta.env.BASE_URL}img/logo-icon.png`;
+
 const NAV = [
   { to: '/concept', label: 'Home', icon: Home, active: (l) => l.pathname === '/concept' || l.pathname === '/concept/' },
   { to: '/concept/dispensaries', label: 'Dispensaries', icon: Store, active: (l) => l.pathname.startsWith('/concept/dispensaries') && !/\bf=delivery\b/.test(l.search) },
@@ -56,7 +59,7 @@ export default function Shell() {
     <div className="cx">
       <aside className="cx-sb">
         <Link to="/concept" className="cx-brand" aria-label="JointCommerce home">
-          <span className="brand-mark cx-mark" aria-hidden="true"><Leaf className="ic18" fill="#fff" /></span>
+          <img className="cx-mark" src={MARK} alt="" width="36" height="36" />
           <Wordmark height={20} />
         </Link>
         <nav className="cx-nav" aria-label="Browse">
@@ -69,7 +72,7 @@ export default function Shell() {
 
       <div className="cx-main">
         <header className="cx-top">
-          <Link to="/concept" className="cx-top-brand" aria-label="JointCommerce home"><span className="brand-mark cx-top-mark" aria-hidden="true"><Leaf className="ic18" fill="#fff" /></span><Wordmark height={18} /></Link>
+          <Link to="/concept" className="cx-top-brand" aria-label="JointCommerce home"><img className="cx-top-mark" src={MARK} alt="" width="36" height="36" /><Wordmark height={18} /></Link>
           <WhereToBuy place={place} onLocation={() => setModal('location')} />
           <div className="cx-acct">
             <button type="button" className="btn plain sm" onClick={() => setModal('login')}><User className="ic14" /><span className="nav-login-text">Log in</span></button>
