@@ -35,7 +35,7 @@ export default function ScrollRow({ title, to, className = '', children }) {
     <section className="hm-sec" data-reveal>
       <div className="hm-head">
         <h2 className="hm-title">{title}</h2>
-        {to && <Link to={to} className="hm-more" aria-label={`See all: ${title}`}><ChevronRight className="ic18" /></Link>}
+        {to && <Link to={to} className="hm-more" aria-label={`See all: ${title}`}>See all<ChevronRight className="ic14" /></Link>}
         {overflow && (
           <div className="hm-arrows">
             <button type="button" className="hm-arrow" aria-label={`Scroll ${title} back`} disabled={!edge.prev} onClick={() => step(-1)}><ChevronLeft className="ic18" /></button>

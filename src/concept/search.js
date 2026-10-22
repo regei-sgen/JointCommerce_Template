@@ -143,14 +143,17 @@ export function search(q, cat = 'all', { filters = [], sort, origin } = {}) {
 
 export const total = (res) => Object.values(res).reduce((n, l) => n + l.length, 0);
 
+// Slugs of the dispensaries that carry `item` (no lookup, no distance): the cheap membership test.
+export function stockSlugs(cat, item) {
+  if (cat === 'dispensaries') return [item.slug];
+  if (cat === 'deals' || cat === 'products') return item.storeSlug ? [item.storeSlug] : [];
+  if (cat === 'brands') return DATA.storesOfBrand[item.slug] || [];
+  return DATA.storesOfStrain[item.slug] || [];
+}
+
 // Dispensaries that carry `item`, nearest first.
 export function stockedAt(cat, item, origin) {
-  let slugs;
-  if (cat === 'dispensaries') slugs = [item.slug];
-  else if (cat === 'deals' || cat === 'products') slugs = item.storeSlug ? [item.storeSlug] : [];
-  else if (cat === 'brands') slugs = DATA.storesOfBrand[item.slug] || [];
-  else slugs = DATA.storesOfStrain[item.slug] || [];
-  return slugs.map((x) => bySlug[x]).filter(Boolean).map((d) => located(d, origin)).sort((a, b) => (a.miles ?? 1e9) - (b.miles ?? 1e9));
+  return stockSlugs(cat, item).map((x) => bySlug[x]).filter(Boolean).map((d) => located(d, origin)).sort((a, b) => (a.miles ?? 1e9) - (b.miles ?? 1e9));
 }
 
 // One store's menu, deals, strains and brands.
@@ -160,6 +163,23 @@ export const embedFor = (slug) => (DATA.embeds && DATA.embeds[slug]) || null;
 // Filter keys of `cat` that no row in the data satisfies.
 export const emptyFilters = (cat, keys) => keys.filter((k) => { const f = FILTERS[cat].find(([key]) => key === k); return f && !(DATA[cat] || []).some(f[2]); });
 export const dealsAt = (slug) => DATA.deals.filter((d) => d.storeSlug === slug);
+// { pct, n } for a store: its best discount and how many deals it lists; null without deals. The index is rebuilt
+// whenever DATA.deals is a different array (the snapshot replaces the sample set).
+let saleIdx = null; let saleSrc = null;
+export function saleOf(slug) {
+  if (saleSrc !== DATA.deals) {
+    saleIdx = new Map();
+    for (const d of DATA.deals) {
+      if (!d.storeSlug || !(d.pct > 0)) continue;
+      const c = saleIdx.get(d.storeSlug);
+      if (c) { c.n += 1; if (d.pct > c.pct) c.pct = d.pct; } else saleIdx.set(d.storeSlug, { pct: d.pct, n: 1 });
+    }
+    saleSrc = DATA.deals;
+  }
+  return saleIdx.get(slug) || null;
+}
+// The same points, with `sale` (best %) and `deals` (count) added on the stores that have deals.
+export const withSales = (points) => points.map((p) => { const x = saleOf(p.slug); return x ? { ...p, sale: x.pct, deals: x.n } : p; });
 export const strainsAt = (slug) => { const set = new Set(DATA.strainsOfStore[slug] || []); return set.size ? DATA.strains.filter((s) => set.has(s.slug)) : []; };
 export const brandsAt = (slug) => { const set = new Set(DATA.brandsOfStore[slug] || []); return set.size ? DATA.brands.filter((b) => set.has(b.slug)) : []; };
 

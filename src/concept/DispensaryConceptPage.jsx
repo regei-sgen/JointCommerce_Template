@@ -3,13 +3,15 @@ import { Link, Navigate, useNavigate, useOutletContext, useParams } from 'react-
 import { typeLabel } from '../data.js';
 import { Pin, Phone, Globe, Star, Clock, Store, ShieldCheck, Truck, Navigate as NavIcon, ChevronLeft, ChevronDown, Tag, Leaf, Info, CreditCard, Banknote, Check, Close } from '../icons.jsx';
 import LeafletMap from '../components/LeafletMap.jsx';
-import { useMedia, useViewportHeight } from './useMedia.js';
+import Wordmark from '../components/Wordmark.jsx';
+import { useMedia, useViewportHeight, useMapType } from './useMedia.js';
 import { LiveDot, TypeChip } from '../components/ui.jsx';
 import { useReveal } from '../hooks/useReveal.js';
-import { find, search, menuFor, embedFor, dealsAt, strainsAt, brandsAt, detailsFor, isDemo, itemLink } from './search.js';
+import { find, search, menuFor, embedFor, dealsAt, strainsAt, brandsAt, detailsFor, isDemo, itemLink, withSales } from './search.js';
 import { fmtMiles } from './geo.js';
 import { Badge, DealRow, StrainRow, BrandRow } from './cards.jsx';
 import { AddButton } from './cart.jsx';
+import { ShareButton } from './share.jsx';
 
 const TODAY = new Date().toLocaleDateString('en-US', { weekday: 'long' });
 const CATS = ['Flower', 'Pre-rolls', 'Vapes', 'Edibles', 'Concentrates'];
@@ -33,7 +35,7 @@ function Store_({ d, details, slug, mapMode, setMapMode }) {
   const nearby = useMemo(() => {
     if (!mapMode || typeof d.lat !== 'number') return [d];
     const list = search('', 'dispensaries', { origin: { lat: d.lat, lng: d.lng } }).dispensaries.filter((x) => typeof x.lat === 'number' && x.slug !== slug);
-    return [d, ...list.slice(0, 40)];
+    return withSales([d, ...list.slice(0, 40)]);
   }, [mapMode, slug]); // eslint-disable-line react-hooks/exhaustive-deps
   const [cat, setCat] = useState('All');
   const [type, setType] = useState(null);
@@ -43,7 +45,8 @@ function Store_({ d, details, slug, mapMode, setMapMode }) {
   const [embedOpen, setEmbedOpen] = useState(false); // a loaded third-party menu widens the map-mode panel
   const phone = useMedia('(max-width: 640px)');
   const vh = useViewportHeight();
-  const inset = useMemo(() => (phone ? { top: 120, bottom: Math.round(vh * 0.58) } : { top: 84, left: embedOpen ? 992 : 572 }), [phone, vh, embedOpen]);
+  const [mapType, setMapType] = useMapType();
+  const inset = useMemo(() => (phone ? { top: 120, bottom: Math.round(vh * 0.58) } : { top: 60, left: embedOpen ? 992 : 572 }), [phone, vh, embedOpen]);
   // Read more shows only when the clamped About block overflows. `clamped` starts null (unknown): the block
   // renders clamped, is measured, and only a measured false lifts the clamp. Kept while open.
   const aboutRef = useRef(null);
@@ -66,8 +69,9 @@ function Store_({ d, details, slug, mapMode, setMapMode }) {
     <>
     {mapMode && typeof d.lat === 'number' && (
       <div className={`dp-bgmap${embedOpen ? ' wide' : ''}`}>
-        <LeafletMap className="dp-bgmap-leaflet" tiles="streets" pins="dom" eager points={nearby} hot={d.slug} center={[d.lat, d.lng]} zoom={13} focus={{ lat: d.lat, lng: d.lng }} focusMode="ensure" globeBelow={4} inset={inset} onSelect={(pt) => navigate(itemLink('dispensaries', pt))} ariaLabel={`Map around ${d.name}`} />
+        <LeafletMap className="dp-bgmap-leaflet" tiles={mapType} onTilesChange={setMapType} pins="dom" eager points={nearby} hot={d.slug} center={[d.lat, d.lng]} zoom={13} focus={{ lat: d.lat, lng: d.lng }} focusMode="ensure" globeBelow={4} inset={inset} controls="bottomright" pinStyle="drop" cluster onSelect={(pt) => navigate(itemLink('dispensaries', pt))} ariaLabel={`Map around ${d.name}`} />
         <button type="button" className="map-mode-btn" aria-pressed="true" onClick={() => setMapMode && setMapMode(false)}><Close className="ic14" />Exit map mode</button>
+        <Link to="/" className="map-brand" aria-label="JointCommerce home"><Wordmark height={18} /></Link>
       </div>
     )}
     <div className={`dp${embedOpen ? ' dp-wide' : ''}`}>
@@ -78,19 +82,20 @@ function Store_({ d, details, slug, mapMode, setMapMode }) {
         <div className="dp-copy">
           <h1 className="dp-title">{d.name}{d.verified && <span className="chip dp-verified"><ShieldCheck className="ic14" />Verified</span>}</h1>
           <div className="dp-meta">
-            <span className="rating"><Star className="ic14" />{d.rating.toFixed(1)}<span className="muted"> ({d.reviews})</span></span>
-            <span className="dot" /><Pin className="ic14" />{d.city} · {fmtMiles(d.miles)} mi
-            <span className="dot" /><LiveDot>{d.status}</LiveDot>
+            {d.reviews > 0 && <><span className="rating"><Star className="ic14" />{d.rating.toFixed(1)}<span className="muted"> ({d.reviews})</span></span><span className="dot" /></>}
+            <Pin className="ic14" />{d.city} · {fmtMiles(d.miles)} mi
+            <span className="dot" /><LiveDot off={!d.open}>{d.status}</LiveDot>
           </div>
           <div className="dp-contact">
-            <span><Pin className="ic14" />{details.address}, {details.zip}</span>
-            <span><Phone className="ic14" />{details.phone}</span>
+            {(details.address || details.zip) && <span><Pin className="ic14" />{[details.address, details.zip].filter(Boolean).join(', ')}</span>}
+            {details.phone && <span><Phone className="ic14" />{details.phone}</span>}
             {details.website && <a href={`https://${details.website}`} target="_blank" rel="noreferrer"><Globe className="ic14" />{details.website}<span className="srl"> (opens in a new tab)</span></a>}
           </div>
         </div>
         <div className="dp-actions">
           <a href="#menu" className="btn ink sm"><Store />Shop menu</a>
           <a href={`https://www.google.com/maps/dir/?api=1&destination=${d.lat},${d.lng}`} target="_blank" rel="noreferrer" className="btn ghost sm"><NavIcon />Directions<span className="srl"> (opens in a new tab)</span></a>
+          <ShareButton title={d.name} text={`${d.name} · ${d.city}`} path={itemLink('dispensaries', d)} />
         </div>
       </div>
 

@@ -23,3 +23,21 @@ export function useViewportHeight() {
   }, []);
   return h;
 }
+
+// The map base layer, 'streets' or 'satellite', kept in localStorage `jc.mapType` and shared by every map on the page.
+const MAP_TYPE_KEY = 'jc.mapType';
+const readMapType = () => { try { return localStorage.getItem(MAP_TYPE_KEY) === 'satellite' ? 'satellite' : 'streets'; } catch { return 'streets'; } };
+export function useMapType() {
+  const [type, setType] = useState(readMapType);
+  useEffect(() => {
+    const on = () => setType(readMapType());
+    window.addEventListener('jc-maptype', on);
+    return () => window.removeEventListener('jc-maptype', on);
+  }, []);
+  const set = (v) => {
+    try { localStorage.setItem(MAP_TYPE_KEY, v); } catch { /* the choice lasts for this page only */ }
+    setType(v);
+    window.dispatchEvent(new Event('jc-maptype'));
+  };
+  return [type, set];
+}

@@ -8,6 +8,8 @@ import WhereToBuy, { useFinderCat } from './WhereToBuy.jsx';
 import { DEFAULT_PLACE, resolvePlace, placePath } from './geo.js';
 import { loadData } from './jcData.js';
 import './concept.css';
+import './dark.css'; // generated from the stylesheets by scripts/build-dark-css.mjs
+import { Sun, Moon } from 'lucide-react';
 
 // The logo mark from public/img, resolved against Vite's base so it also works on a subpath host.
 const MARK = `${import.meta.env.BASE_URL}img/logo-icon.png`;
@@ -48,6 +50,17 @@ export default function Shell() {
   const cat = useFinderCat();
   const [place, setPlace] = useState(DEFAULT_PLACE);
   const [ready, setReady] = useState(false);
+  // Theme: index.html sets html[data-theme] before paint (stored choice, else the system setting). The toggle stores
+  // a choice; without one, a system change is followed.
+  const [theme, setTheme] = useState(() => document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light');
+  useEffect(() => { document.documentElement.dataset.theme = theme; }, [theme]);
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    const on = () => { let stored = null; try { stored = localStorage.getItem('jc.theme'); } catch { /* storage unavailable */ } if (stored !== 'light' && stored !== 'dark') setTheme(mq.matches ? 'dark' : 'light'); };
+    mq.addEventListener('change', on);
+    return () => mq.removeEventListener('change', on);
+  }, []);
+  const toggleTheme = () => { const t = theme === 'dark' ? 'light' : 'dark'; setTheme(t); try { localStorage.setItem('jc.theme', t); } catch { /* storage unavailable */ } };
   useEffect(() => { let on = true; loadData().finally(() => { if (on) setReady(true); }); return () => { on = false; }; }, []);
   const locPath = placePath(place);
   const [modal, setModal] = useState(null); // 'location' | 'login' | 'signup'
@@ -112,6 +125,7 @@ export default function Shell() {
           <Link to="/" className="cx-top-brand" aria-label="JointCommerce home"><img className="cx-top-mark" src={MARK} alt="" width="36" height="36" /><Wordmark height={18} /></Link>
           <WhereToBuy place={place} onLocation={() => setModal('location')} />
           <div className="cx-acct">
+            <button type="button" className="btn plain sm cx-theme" onClick={toggleTheme} aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'} title={theme === 'dark' ? 'Light mode' : 'Dark mode'}>{theme === 'dark' ? <Sun size={16} strokeWidth={2} aria-hidden="true" /> : <Moon size={16} strokeWidth={2} aria-hidden="true" />}</button>
             <CartButton />
             <button type="button" className="btn plain sm" onClick={() => setModal('login')}><User className="ic14" /><span className="nav-login-text">Log in</span></button>
             <button type="button" className="btn ink sm" onClick={() => setModal('signup')}>Sign up</button>
