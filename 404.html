@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" sizes="64x64" href="/JointCommerce_Template/img/logo-icon.png" />
+    <link rel="apple-touch-icon" sizes="192x192" href="/JointCommerce_Template/img/logo-icon-192.png" />
+    <title>JointCommerce</title>
+    <script>
+      // Theme before first paint: a stored choice (jc.theme), else the system setting. Shell.jsx keeps it in sync.
+      (function () { var t = "light"; try { t = localStorage.getItem("jc.theme"); if (t !== "light" && t !== "dark") t = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"; } catch (e) { t = "light"; } document.documentElement.setAttribute("data-theme", t); })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://images.unsplash.com" />
+    <link rel="preconnect" href="https://server.arcgisonline.com" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" />
+    <script type="module" crossorigin src="/JointCommerce_Template/assets/index-HMUs68Z9.js"></script>
+    <link rel="modulepreload" crossorigin href="/JointCommerce_Template/assets/react-CPymA19K.js">
+    <link rel="stylesheet" crossorigin href="/JointCommerce_Template/assets/index-D-eyFE9x.css">
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
